@@ -4,6 +4,10 @@
 
 <p><strong>A modern, full-featured ERP platform for startups and SMEs — managing everything from inventory and sales to HR, financials, and integrations in one beautiful interface.</strong></p>
 
+[![CI](https://github.com/rafiimafif/automate-erp/actions/workflows/ci.yml/badge.svg)](https://github.com/rafiimafif/automate-erp/actions/workflows/ci.yml)
+[![CD](https://github.com/rafiimafif/automate-erp/actions/workflows/cd.yml/badge.svg)](https://github.com/rafiimafif/automate-erp/actions/workflows/cd.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=rafiimafif_automate-erp&metric=alert_status)](https://sonarcloud.io/dashboard?id=rafiimafif_automate-erp)
+
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
@@ -186,7 +190,7 @@ automateERP includes a ready-to-configure integrations hub covering:
 - [ ] **Stripe Billing** — Subscription tiers limiting features per plan
 - [ ] **Role-Based Access Control** — Granular permissions per employee department
 - [ ] **Email Notifications** — Invoice delivery and low-stock alerts via Resend
-- [ ] **CI/CD Pipeline** — GitHub Actions workflow with automated Docker builds
+- [x] **CI/CD Pipeline** — GitHub Actions workflow with automated Docker builds, SonarCloud, and Trivy security scanning
 - [ ] **AWS Deployment** — Terraform IaC for scalable cloud infrastructure
 
 ---
