@@ -37,6 +37,7 @@ Designed with a **Stripe/Linear-inspired UI**, automateERP replaces bloated lega
 | 💰 **Financials** | Profit & Loss overview, revenue vs expenses KPIs, and transaction ledger |
 | 👔 **HR & Payroll** | Employee directory with department badges, salary tracking, and headcount analytics |
 | 🔌 **Integrations Hub** | 32 pre-built integration cards across 8 categories (Payments, E-Commerce, Comms, Analytics, and more) |
+| 🚀 **CI/CD Pipeline** | Automated workflows for linting, testing, security scanning (Trivy), and code quality (SonarCloud) |
 
 ---
 
@@ -54,6 +55,12 @@ Designed with a **Stripe/Linear-inspired UI**, automateERP replaces bloated lega
 - **Django REST Framework** — API-first architecture
 - **SQLite** — Default database (zero-config, portable to PostgreSQL)
 
+### CI/CD & Security
+- **GitHub Actions** — Automated CI/CD pipelines
+- **SonarCloud** — Continuous code quality & security analysis
+- **Trivy** — Vulnerability scanner for containers
+- **GHCR** — GitHub Container Registry for image hosting
+
 ### Infrastructure
 - **Docker + Docker Compose** — Fully containerized development and deployment
 - **Vite Dev Server** — Hot Module Replacement with volume mounts
@@ -64,6 +71,7 @@ Designed with a **Stripe/Linear-inspired UI**, automateERP replaces bloated lega
 
 ```
 automate-erp/
+├── .github/workflows/          # CI/CD pipelines (CI & CD)
 ├── docker-compose.yml          # Orchestrates backend + frontend containers
 │
 ├── backend/                    # Django REST API
