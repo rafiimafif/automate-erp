@@ -126,12 +126,6 @@ export default function Login({ onLoginSuccess }) {
 
           </form>
 
-          {/* Demo Hint */}
-          <div className="mt-8 text-center border-t border-slate-100 pt-6">
-            <p className="text-xs text-slate-400">
-              Try using <span className="font-semibold text-slate-600">admin</span> / <span className="font-semibold text-slate-600">admin</span>
-            </p>
-          </div>
 
         </div>
       </div>
