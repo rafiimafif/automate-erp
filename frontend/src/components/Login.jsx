@@ -79,14 +79,9 @@ export default function Login({ onLoginSuccess }) {
 
             {/* Password Input */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-semibold text-slate-700" htmlFor="password">
-                  Password
-                </label>
-                <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                  Forgot password?
-                </a>
-              </div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2" htmlFor="password">
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-slate-400" />
@@ -101,6 +96,11 @@ export default function Login({ onLoginSuccess }) {
                   disabled={isLoading}
                   required
                 />
+              </div>
+              <div className="mt-2 text-right">
+                <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                  Forgot password?
+                </a>
               </div>
             </div>
 
