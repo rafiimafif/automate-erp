@@ -31,17 +31,20 @@ Designed with a **Stripe/Linear-inspired UI**, automateERP replaces bloated lega
 
 | Module | Description |
 |---|---|
-| 🔐 **Authentication** | Secure login with session management and role-based access control |
+| 🏠 **App Launcher** | Odoo-style modular home screen with staggered animations and brand-colored app cards |
 | 📊 **Dashboard** | Live KPI cards, sparkline charts, revenue overview, activity feed, and alert panels |
 | 📦 **Inventory** | Full product catalog with SKU tracking, stock levels, status badges, and CRUD operations |
+| 🗂️ **Projects** | Multi-level management — Projects grid view → Kanban task boards with status & priority |
+| 🛒 **POS Terminal** | Real-time cashier interface with cart, quantity controls, taxes, and payment flow |
+| 🔄 **Subscriptions** | SaaS billing management — MRR calculations, seat licensing, and billing cycles |
+| 🧾 **Expenses** | Employee reimbursement workflow with spend analytics and one-click approval/rejection |
 | 🛒 **Sales & Invoices** | Create, edit, and delete invoices with dynamic status tracking (Paid / Pending / Overdue) |
 | 👥 **Customers** | Client directory with profile avatars, contact info, and total lifetime value tracking |
 | 🗂️ **Sales Pipeline** | Kanban-style deal board with stage-based card management (Lead → Contacted → Negotiating → Won) |
 | 🚚 **Suppliers & POs** | Vendor directory and Purchase Order management — tabbed interface with full CRUD |
-| 💰 **Financials** | Profit & Loss overview, revenue vs expenses KPIs, and transaction ledger |
 | 👔 **HR & Payroll** | Employee directory with department badges, salary tracking, and headcount analytics |
-| 🔌 **Integrations Hub** | 32 pre-built integration cards across 8 categories (Payments, E-Commerce, Comms, Analytics, and more) |
-| 🚀 **CI/CD Pipeline** | Automated workflows for linting, testing, security scanning (Trivy), and code quality (SonarCloud) |
+| 🔌 **Integrations Hub** | 32 pre-built integration cards across 8 categories |
+| 🚀 **CI/CD Pipeline** | Automated workflows for linting, testing, security scanning (Trivy), and SonarCloud |
 
 ---
 
@@ -100,15 +103,20 @@ automate-erp/
         ├── main.jsx
         └── components/
             ├── Login.jsx       # Auth page with animated background
-            ├── Dashboard.jsx   # Analytics overview
-            ├── Inventory.jsx   # Product management
-            ├── Sales.jsx       # Invoice tracking
-            ├── Customers.jsx   # CRM directory
-            ├── Pipeline.jsx    # Kanban deal board
-            ├── Accounting.jsx  # Financial reporting
-            ├── Suppliers.jsx   # Vendor & PO management
-            ├── HR.jsx          # Employee & payroll
-            └── Integrations.jsx # 3rd-party integrations hub
+            ├── Home.jsx           # Odoo-style app launcher grid
+            ├── Dashboard.jsx      # Analytics overview
+            ├── Projects.jsx       # Project grid & Kanban boards
+            ├── POS.jsx            # Point of Sale terminal
+            ├── Subscriptions.jsx  # SaaS billing & MRR tracking
+            ├── Expenses.jsx       # Reimbursement & approval flow
+            ├── Inventory.jsx      # Product management
+            ├── Sales.jsx          # Invoice tracking
+            ├── Customers.jsx      # CRM directory
+            ├── Pipeline.jsx       # Kanban deal board
+            ├── Accounting.jsx     # Financial reporting
+            ├── Suppliers.jsx      # Vendor & PO management
+            ├── HR.jsx             # Employee & payroll
+            └── Integrations.jsx   # 3rd-party integrations hub
 ```
 
 ---
@@ -190,6 +198,7 @@ automateERP includes a ready-to-configure integrations hub covering:
 - [ ] **Stripe Billing** — Subscription tiers limiting features per plan
 - [ ] **Role-Based Access Control** — Granular permissions per employee department
 - [ ] **Email Notifications** — Invoice delivery and low-stock alerts via Resend
+- [x] **Modular UI** — Odoo-style home launcher with standalone app feel
 - [x] **CI/CD Pipeline** — GitHub Actions workflow with automated Docker builds, SonarCloud, and Trivy security scanning
 - [ ] **AWS Deployment** — Terraform IaC for scalable cloud infrastructure
 
