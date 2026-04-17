@@ -48,8 +48,8 @@ describe('Expenses Page', () => {
     fireEvent.change(searchInput, { target: { value: 'Jane' } });
 
     await waitFor(() => {
-      expect(screen.queryByText('John Doe')).toBeNull();
-      expect(screen.getByText('Jane Smith')).toBeDefined();
+      expect(screen.queryByText(/John Doe/i)).toBeNull();
+      expect(screen.getByText(/Jane Smith/i)).toBeDefined();
     });
   });
 
