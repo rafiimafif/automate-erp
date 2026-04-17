@@ -146,8 +146,8 @@ docker-compose up --build -d
 
 **Default credentials:**
 ```
-Username: admin
-Password: admin
+Username: admin@automate.erp
+Password: admin123
 ```
 
 ---
@@ -198,7 +198,7 @@ automateERP includes a ready-to-configure integrations hub covering:
 ## 🔮 Roadmap
 
 - [ ] **Real Authentication** — JWT token auth via Django Simple JWT + Clerk SSO
-- [ ] **Live API Integration** — Wire all frontend CRUD operations to the Django REST backend
+- [x] **Live API Integration** — Wire all frontend CRUD operations to the Django REST backend
 - [ ] **PostgreSQL Support** — Production-grade database with Docker volume persistence
 - [ ] **Multi-Tenancy** — Isolated workspaces per organization for SaaS deployment
 - [ ] **Stripe Billing** — Subscription tiers limiting features per plan
