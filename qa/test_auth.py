@@ -32,9 +32,9 @@ def test_login_failure(driver, base_url):
     driver.find_element(By.ID, "password").send_keys("wrongpass")
     driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
     
-    # Wait for error message
+    # Wait for error message visibility (handles animations)
     error_msg = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, ".text-red-600"))
+        EC.visibility_of_element_located((By.CSS_SELECTOR, ".text-red-600"))
     )
-    assert error_msg.is_displayed()
+    assert "Login failed" in error_msg.text
     assert "Login failed" in error_msg.text

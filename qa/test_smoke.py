@@ -7,26 +7,33 @@ def test_dashboard_metrics_load(driver, base_url, login_helper):
     """Verify that dashboard metrics (Total Sales, etc.) are loaded and not zero/loading."""
     login_helper()
     
+    # Enter Dashboard from Home grid
+    dashboard_card = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//button[h3[text()='Dashboard']]"))
+    )
+    dashboard_card.click()
+    
     # Wait for the Overview header to ensure dashboard is loaded
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, "//h1[text()='Overview']"))
     )
     
     # Check for specific metrics cards
-    # We look for some of the metric titles
-    metrics_titles = ["Total Sales", "Active Orders", "New Customers"]
-    for title in metrics_titles:
-        assert driver.find_element(By.XPATH, f"//h3[text()='{title}']").is_displayed()
+    # We look for some of the metric labels in the new design (e.g. Total Lifetime Sales)
+    assert driver.find_element(By.XPATH, "//*[contains(text(), 'Total Lifetime Sales')]").is_displayed()
     
-    # Verify AI Insight box is present
-    assert driver.find_element(By.XPATH, "//h2[text()='AI Intelligence Insight']").is_displayed()
+    # Verify AI Insight card is present
+    assert driver.find_element(By.XPATH, "//*[contains(text(), 'Live Performance Insight')]").is_displayed()
 
 def test_inventory_table_content(driver, base_url, login_helper):
     """Verify that the inventory table loads data rows."""
     login_helper()
     
-    # Navigate to Inventory
-    driver.find_element(By.XPATH, "//button[span[text()='Inventory']]").click()
+    # Navigate into Inventory from Home
+    inventory_card = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//button[h3[text()='Inventory']]"))
+    )
+    inventory_card.click()
     
     # Wait for table
     WebDriverWait(driver, 10).until(
