@@ -35,6 +35,11 @@ def base_url():
 @pytest.fixture
 def login_helper(driver, base_url):
     def _login(username="admin@automate.erp", password="admin123"):
+        # Ensure we are on the domain before clearing storage
+        driver.get(base_url)
+        driver.execute_script("window.localStorage.clear();")
+        
+        # Now go to the login page correctly
         driver.get(f"{base_url}/login")
         driver.find_element("id", "username").clear()
         driver.find_element("id", "username").send_keys(username)

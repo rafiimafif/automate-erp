@@ -244,6 +244,9 @@ export default function Projects() {
                       <div
                         key={task.id}
                         onClick={() => openEditTask(task)}
+                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && openEditTask(task)}
+                        role="button"
+                        tabIndex={0}
                         className={`bg-white rounded-xl border ${cfg.border} p-4 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all group relative`}
                       >
                         {/* Priority */}
@@ -405,6 +408,9 @@ export default function Projects() {
               <div
                 key={project.id}
                 onClick={() => setOpenProjectId(project.id)}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setOpenProjectId(project.id)}
+                role="button"
+                tabIndex={0}
                 className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-slate-200/60 hover:-translate-y-1 transition-all cursor-pointer group overflow-hidden"
               >
                 <div className={`h-1.5 w-full bg-blue-600`}></div>
