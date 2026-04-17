@@ -339,29 +339,29 @@ export default function Expenses() {
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Expense Description</label>
-                <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="e.g. Flight to Singapore" required />
+                <label htmlFor="exp-title" className="block text-sm font-semibold text-slate-700 mb-1.5">Expense Description</label>
+                <input id="exp-title" type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="e.g. Flight to Singapore" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Submitted By</label>
-                  <input type="text" value={form.submitted_by} onChange={e => setForm({...form, submitted_by: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required />
+                  <label htmlFor="exp-submitted-by" className="block text-sm font-semibold text-slate-700 mb-1.5">Submitted By</label>
+                  <input id="exp-submitted-by" type="text" value={form.submitted_by} onChange={e => setForm({...form, submitted_by: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Amount ($)</label>
-                  <input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required />
+                  <label htmlFor="exp-amount" className="block text-sm font-semibold text-slate-700 mb-1.5">Amount ($)</label>
+                  <input id="exp-amount" type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
-                  <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white">
+                  <label htmlFor="exp-category" className="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
+                  <select id="exp-category" value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white">
                     {CATEGORIES.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
                   </select>
                 </div>
                  <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Status</label>
-                  <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white">
+                  <label htmlFor="exp-status" className="block text-sm font-semibold text-slate-700 mb-1.5">Status</label>
+                  <select id="exp-status" value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white">
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
                     <option value="rejected">Rejected</option>

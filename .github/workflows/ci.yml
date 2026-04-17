@@ -101,6 +101,16 @@ jobs:
         working-directory: ./frontend
         run: npm run lint || echo "Lint warnings found, continuing."
 
+      - name: Run tests with coverage
+        working-directory: ./frontend
+        run: npm run coverage
+
+      - name: Upload frontend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/lcov.info
+
       - name: Build production bundle
         working-directory: ./frontend
         run: npm run build
@@ -172,11 +182,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download coverage report
+      - name: Download all coverage reports
         uses: actions/download-artifact@v4
         with:
-          name: backend-coverage
-          path: backend
+          path: artifacts
+
+      - name: Organize coverage files
+        run: |
+          mkdir -p backend frontend/coverage
+          cp artifacts/backend-coverage/coverage.xml backend/coverage.xml || true
+          cp artifacts/frontend-coverage/lcov.info frontend/coverage/lcov.info || true
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
@@ -188,5 +203,6 @@ jobs:
             -Dsonar.projectKey=rafiimafif_automate-erp
             -Dsonar.organization=rafiimafif
             -Dsonar.python.coverage.reportPaths=backend/coverage.xml
+            -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
             -Dsonar.coverage.exclusions=backend/api/migrations/**,backend/core/asgi.py,backend/core/wsgi.py,backend/manage.py
             -Dsonar.cpd.exclusions=backend/api/migrations/**
