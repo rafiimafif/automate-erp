@@ -119,6 +119,47 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
   # ──────────────────────────────────────────────
+  # QA Automation: Selenium & Functional Tests
+  # ──────────────────────────────────────────────
+  qa-automation:
+    name: 🧪 QA Automation — Selenium
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r qa/requirements.txt
+
+      - name: Start Services (Docker Compose)
+        run: |
+          docker compose up -d
+          # Wait for services to be ready
+          sleep 30 
+
+      - name: Run Selenium Tests (Headless)
+        run: |
+          cd qa
+          pytest --html=qa-report.html --self-contained-html
+        env:
+          BASE_URL: http://localhost:5173
+          HEADLESS: true
+
+      - name: Upload QA Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-automation-report
+          path: qa/qa-report.html
+
+  # ──────────────────────────────────────────────
   # SonarCloud Code Quality Analysis
   # ──────────────────────────────────────────────
   sonarcloud:
