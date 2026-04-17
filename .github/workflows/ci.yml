@@ -49,9 +49,9 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: core.settings
 
-      - name: Run tests
+      - name: Run tests with coverage
         working-directory: ./backend
-        run: pytest --tb=short || echo "No tests found, continuing for CI demonstration."
+        run: pytest --cov=api --cov-report=xml:coverage.xml --cov-report=term --tb=short
         env:
           DJANGO_SETTINGS_MODULE: core.settings
 
@@ -134,3 +134,6 @@ jobs:
           args: >
             -Dsonar.projectKey=rafiimafif_automate-erp
             -Dsonar.organization=rafiimafif
+            -Dsonar.python.coverage.reportPaths=backend/coverage.xml
+            -Dsonar.coverage.exclusions=backend/api/migrations/**,backend/core/asgi.py,backend/core/wsgi.py,backend/manage.py
+            -Dsonar.cpd.exclusions=backend/api/migrations/**
