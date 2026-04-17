@@ -2,7 +2,9 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from api.models import Product, Customer, Order, OrderItem, Deal, Expense, Employee, Supplier
 from decimal import Decimal
+import secrets
 import random
+secure_random = random.SystemRandom()
 
 User = get_user_model()
 
@@ -52,13 +54,13 @@ class Command(BaseCommand):
         if Order.objects.count() == 0:
             customers = Customer.objects.all()
             for i in range(5):
-                cust = random.choice(customers)
+                cust = secrets.choice(customers)
                 order = Order.objects.create(
                     customer=cust,
                     customer_name=cust.name,
                     customer_email=cust.email,
-                    status=random.choice(['paid', 'pending', 'overdue']),
-                    total_amount=Decimal(random.randint(100, 5000))
+                    status=secrets.choice(['paid', 'pending', 'overdue']),
+                    total_amount=Decimal(secure_random.randint(100, 5000))
                 )
             self.stdout.write(self.style.SUCCESS('Created initial orders'))
 
@@ -70,9 +72,9 @@ class Command(BaseCommand):
             for title in deal_titles:
                 Deal.objects.create(
                     title=title,
-                    customer=random.choice(customers),
-                    stage=random.choice(stages),
-                    value=Decimal(random.randint(5000, 50000)),
+                    customer=secrets.choice(customers),
+                    stage=secrets.choice(stages),
+                    value=Decimal(secure_random.randint(5000, 50000)),
                     owner='Rafii'
                 )
             self.stdout.write(self.style.SUCCESS('Created initial deals'))
