@@ -55,6 +55,12 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: core.settings
 
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
+
       - name: Build Backend Docker Image for scanning
         run: docker build -t automateerp-backend:ci ./backend
 
@@ -125,8 +131,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend
+
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
