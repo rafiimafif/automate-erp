@@ -18,12 +18,15 @@ def test_dashboard_metrics_load(driver, base_url, login_helper):
         EC.presence_of_element_located((By.XPATH, "//h1[text()='Overview']"))
     )
     
-    # Check for specific metrics cards
-    # We look for some of the metric labels in the new design (e.g. Total Lifetime Sales)
-    assert driver.find_element(By.XPATH, "//*[contains(text(), 'Total Lifetime Sales')]").is_displayed()
+    # Check for specific metrics cards (Waiting for visibility handles animations)
+    WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, "//*[contains(text(), 'Total Lifetime Sales')]"))
+    )
     
-    # Verify AI Insight card is present
-    assert driver.find_element(By.XPATH, "//*[contains(text(), 'Live Performance Insight')]").is_displayed()
+    # Verify AI Insight card is present and visible
+    WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, "//*[contains(text(), 'Live Performance Insight')]"))
+    )
 
 def test_inventory_table_content(driver, base_url, login_helper):
     """Verify that the inventory table loads data rows."""
