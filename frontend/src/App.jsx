@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingCart, Users, Bell, Search, Plus, LogOut,
   Kanban, Truck, LineChart, Briefcase, Blocks, Grid3x3, ArrowLeft, FolderKanban, Receipt, Monitor, RefreshCw,
@@ -22,32 +22,21 @@ import Subscriptions from './components/Subscriptions';
 import Login from './components/Login';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('access_token'));
   const [activeTab, setActiveTab] = useState(null); // null = show Home/App Launcher
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
 
-  const notifications = [
-    { id: 1, title: 'Invoice Paid', desc: 'Acme Corp paid #INV-2024-001', time: '2m ago', type: 'success' },
-    { id: 2, title: 'Low Stock', desc: 'Ergonomic Chair is below 10 units', time: '1h ago', type: 'warning' },
-    { id: 3, title: 'New Lead', desc: 'Marcus J. added to pipeline', time: '3h ago', type: 'info' },
-  ];
+  // Sync auth state if changed in other tabs or by refresh
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token && isAuthenticated) {
+      setIsAuthenticated(false);
+    }
+  }, [isAuthenticated]);
 
-  const quickActions = [
-    { label: 'New Invoice', icon: FilePlus, route: 'sales' },
-    { label: 'Add Customer', icon: UserPlus, route: 'customers' },
-    { label: 'Create Project', icon: FolderPlus, route: 'projects' },
-    { label: 'Submit Expense', icon: Receipt, route: 'expenses' },
-  ];
-
-  if (!isAuthenticated) {
-    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
-  }
-
-  // When activeTab is null, show the App Launcher
-  const isHome = activeTab === null;
-
-  const navGroups = [
+  const [notifications, setNotifications] = useState([]);
+  const [navGroups] = useState([
     {
       title: 'Core Business',
       items: [
@@ -81,11 +70,45 @@ export default function App() {
         { id: 'integrations', label: 'Integrations', icon: Blocks },
       ]
     }
-  ];
+  ]);
+
+  useEffect(() => {
+    if (isAuthenticated && isNotificationsOpen) {
+      const fetchNotifications = async () => {
+        try {
+          const data = await api.notifications.list();
+          setNotifications(data);
+        } catch (err) {
+          console.error('Failed to fetch notifications');
+        }
+      };
+      fetchNotifications();
+    }
+  }, [isAuthenticated, isNotificationsOpen]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    setActiveTab(null);
+  };
+
+  const handleOpenApp = (appId) => {
+    setActiveTab(appId);
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
+  const isHome = activeTab === null;
+  const currentAppLabel = navGroups.flatMap(g => g.items).find(i => i.id === activeTab)?.label || '';
 
   const renderContent = () => {
+    const props = { onNavigate: setActiveTab };
     switch (activeTab) {
-      case 'dashboard': return <Dashboard onNavigate={setActiveTab} />;
+      case 'dashboard': return <Dashboard {...props} />;
       case 'inventory': return <Inventory />;
       case 'sales': return <Sales />;
       case 'customers': return <Customers />;
@@ -98,25 +121,14 @@ export default function App() {
       case 'expenses': return <Expenses />;
       case 'pos': return <POS />;
       case 'subscriptions': return <Subscriptions />;
-      default: return <Dashboard onNavigate={setActiveTab} />;
+      default: return <Dashboard {...props} />;
     }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setActiveTab(null);
-  };
-
-  const handleOpenApp = (appId) => {
-    setActiveTab(appId);
   };
 
   const handleGoHome = () => {
     setActiveTab(null);
   };
 
-  // Find current app label for the topbar breadcrumb
-  const currentAppLabel = navGroups.flatMap(g => g.items).find(i => i.id === activeTab)?.label || '';
 
   // ─── HOME / APP LAUNCHER VIEW ───
   if (isHome) {
@@ -258,10 +270,7 @@ export default function App() {
             {/* Notifications Dropdown */}
             <div className="relative">
               <button 
-                onClick={() => {
-                  setIsNotificationsOpen(!isNotificationsOpen);
-                  setIsQuickActionOpen(false);
-                }}
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
                 className={`relative p-2 rounded-xl transition-all ${isNotificationsOpen ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
               >
                 <Bell className="w-5 h-5" />
@@ -275,22 +284,22 @@ export default function App() {
                     <button className="text-[11px] font-bold text-blue-600 hover:underline">Mark all read</button>
                   </div>
                   <div className="max-h-96 overflow-y-auto">
-                    {notifications.map(n => (
+                    {notifications.length > 0 ? notifications.map(n => (
                       <div 
                         key={n.id} 
-                        onClick={() => {
-                          setActiveTab(n.route);
-                          setIsNotificationsOpen(false);
-                        }}
                         className="px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0"
                       >
                         <div className="flex justify-between items-start mb-1">
-                          <span className="text-sm font-bold text-slate-800">{n.title}</span>
-                          <span className="text-[10px] text-slate-400">{n.time}</span>
+                          <span className="text-sm font-bold text-slate-800">System Update</span>
+                          <span className="text-[10px] text-slate-400">{new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
-                        <p className="text-xs text-slate-500 leading-relaxed">{n.desc}</p>
+                        <p className="text-xs text-slate-500 leading-relaxed">{n.message}</p>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="px-4 py-8 text-center text-slate-400 text-xs">
+                        No new notifications.
+                      </div>
+                    )}
                   </div>
                   <div className="px-4 py-2 text-center border-t border-slate-100">
                     <button className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors">View all updates</button>
@@ -304,35 +313,6 @@ export default function App() {
         {/* Dynamic Content Area */}
         <div className="flex-1 overflow-auto relative">
           {renderContent()}
-
-          {/* Global Floating Quick Actions FAB */}
-          {!isHome && (
-            <div className="fixed bottom-8 right-8 z-[100] group">
-              {/* Menu Container */}
-              <div className="absolute bottom-full right-0 pb-3 flex flex-col items-end gap-3 pointer-events-none group-hover:pointer-events-auto opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                {quickActions.map((action, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setActiveTab(action.route);
-                    }}
-                    className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 shadow-lg rounded-full hover:bg-slate-50 transition-all text-sm font-bold text-slate-700 hover:text-blue-600 hover:-translate-x-1"
-                  >
-                    <span>{action.label}</span>
-                    <action.icon className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-
-              {/* Toggle Button */}
-              <button 
-                onClick={() => setIsQuickActionOpen(!isQuickActionOpen)}
-                className="flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-glow-blue hover:scale-105 active:scale-95 transition-all outline-none"
-              >
-                <Plus className="w-6 h-6 group-hover:rotate-45 transition-transform duration-300" />
-              </button>
-            </div>
-          )}
         </div>
         
       </main>

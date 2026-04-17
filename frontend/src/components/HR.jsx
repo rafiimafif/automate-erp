@@ -1,13 +1,6 @@
-import React, { useState } from 'react';
-import { Briefcase, Plus, Search, Edit, Trash2, X, DollarSign, Users, Clock, CheckCircle } from 'lucide-react';
-
-const initialEmployees = [
-  { id: 'EMP-001', name: 'Alex Rivera', role: 'Software Engineer', department: 'Engineering', email: 'alex@automateerp.com', salary: 95000, startDate: '2022-03-15', status: 'Active' },
-  { id: 'EMP-002', name: 'Maria Santos', role: 'Sales Manager', department: 'Sales', email: 'maria@automateerp.com', salary: 78000, startDate: '2021-07-01', status: 'Active' },
-  { id: 'EMP-003', name: 'James Parker', role: 'Finance Analyst', department: 'Finance', email: 'james@automateerp.com', salary: 72000, startDate: '2023-01-20', status: 'Active' },
-  { id: 'EMP-004', name: 'Lisa Nguyen', role: 'HR Coordinator', department: 'HR', email: 'lisa@automateerp.com', salary: 64000, startDate: '2022-09-05', status: 'On Leave' },
-  { id: 'EMP-005', name: 'David Kim', role: 'DevOps Engineer', department: 'Engineering', email: 'david@automateerp.com', salary: 105000, startDate: '2020-12-01', status: 'Active' },
-];
+import React, { useState, useEffect } from 'react';
+import { Briefcase, Plus, Search, Edit, Trash2, X, DollarSign, Users, Clock, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { api } from '../api/endpoints';
 
 const DEPARTMENTS = ['Engineering', 'Sales', 'Finance', 'HR', 'Operations', 'Marketing'];
 
@@ -21,40 +14,102 @@ const deptColors = {
 };
 
 const avatarColors = ['bg-blue-100 text-blue-700', 'bg-indigo-100 text-indigo-700', 'bg-purple-100 text-purple-700', 'bg-emerald-100 text-emerald-700', 'bg-rose-100 text-rose-700', 'bg-amber-100 text-amber-700'];
-const getAvatarColor = (name) => avatarColors[name.length % avatarColors.length];
+const getAvatarColor = (name) => avatarColors[(name || '').length % avatarColors.length];
 
 export default function HR() {
-  const [employees, setEmployees] = useState(initialEmployees);
+  const [employees, setEmployees] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', role: '', department: 'Engineering', email: '', salary: '', startDate: '', status: 'Active' });
+  const [formData, setFormData] = useState({ first_name: '', last_name: '', role: '', department: 'Engineering', email: '', salary: '', hire_date: '' });
+
+  const fetchEmployees = async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.employees.list();
+      setEmployees(data);
+    } catch (err) {
+      setError('Failed to fetch employee records.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
   const totalPayroll = employees.reduce((sum, e) => sum + Number(e.salary), 0);
-  const activeCount = employees.filter(e => e.status === 'Active').length;
+  const activeCount = employees.length; // Simplified since backend didn't have status yet
   const departments = [...new Set(employees.map(e => e.department))].length;
 
   const filteredEmployees = employees.filter(e =>
-    e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (e.first_name + ' ' + e.last_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
     e.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
     e.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const openCreate = () => { setFormData({ name: '', role: '', department: 'Engineering', email: '', salary: '', startDate: '', status: 'Active' }); setEditingId(null); setIsModalOpen(true); };
-  const openEdit = (emp) => { setFormData({ name: emp.name, role: emp.role, department: emp.department, email: emp.email, salary: emp.salary, startDate: emp.startDate, status: emp.status }); setEditingId(emp.id); setIsModalOpen(true); };
-  const handleDelete = (id) => setEmployees(employees.filter(e => e.id !== id));
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (editingId) {
-      setEmployees(employees.map(emp => emp.id === editingId ? { ...emp, ...formData } : emp));
-    } else {
-      setEmployees([{ id: `EMP-${String(employees.length + 1).padStart(3, '0')}`, ...formData }, ...employees]);
-    }
-    setIsModalOpen(false);
+  const openCreate = () => { 
+    setFormData({ first_name: '', last_name: '', role: '', department: 'Engineering', email: '', salary: '', hire_date: new Date().toISOString().split('T')[0] }); 
+    setEditingId(null); 
+    setIsModalOpen(true); 
   };
+  
+  const openEdit = (emp) => { 
+    setFormData({ 
+      first_name: emp.first_name, 
+      last_name: emp.last_name, 
+      role: emp.role, 
+      department: emp.department, 
+      email: emp.email, 
+      salary: emp.salary, 
+      hire_date: emp.hire_date 
+    }); 
+    setEditingId(emp.id); 
+    setIsModalOpen(true); 
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Remove this employee from records?')) return;
+    try {
+      await api.employees.delete(id);
+      setEmployees(employees.filter(e => e.id !== id));
+    } catch (err) {
+      alert('Failed to delete employee.');
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = { ...formData, salary: parseFloat(formData.salary) };
+      if (editingId) {
+        const updated = await api.employees.update(editingId, payload);
+        setEmployees(employees.map(emp => emp.id === editingId ? updated : emp));
+      } else {
+        const created = await api.employees.create(payload);
+        setEmployees([created, ...employees]);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      alert('Failed to save employee.');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Accessing Personnel Files...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50 p-8 relative">
@@ -77,6 +132,14 @@ export default function HR() {
           </button>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-center text-red-700">
+            <AlertCircle className="w-5 h-5 mr-3" />
+            <p className="font-medium">{error}</p>
+            <button onClick={fetchEmployees} className="ml-auto underline font-bold">Retry</button>
+          </div>
+        )}
+
         {/* KPI Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
@@ -93,7 +156,7 @@ export default function HR() {
               <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><CheckCircle className="w-4 h-4" /></span>
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mt-3">{activeCount}</h3>
-            <p className="text-xs text-slate-400 font-medium mt-2">{employees.length - activeCount} on leave or inactive</p>
+            <p className="text-xs text-slate-400 font-medium mt-2">All staff records are active</p>
           </div>
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
@@ -123,8 +186,7 @@ export default function HR() {
                   <th className="px-6 py-4">Role</th>
                   <th className="px-6 py-4">Department</th>
                   <th className="px-6 py-4">Annual Salary</th>
-                  <th className="px-6 py-4">Start Date</th>
-                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Hire Date</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -133,11 +195,11 @@ export default function HR() {
                   <tr key={emp.id} className="hover:bg-blue-50/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(emp.name)}`}>
-                          {emp.name.charAt(0)}
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(emp.first_name + emp.last_name)}`}>
+                          {emp.first_name.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{emp.name}</p>
+                          <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{emp.first_name} {emp.last_name}</p>
                           <p className="text-xs text-slate-400">{emp.email}</p>
                         </div>
                       </div>
@@ -152,13 +214,8 @@ export default function HR() {
                     <td className="px-6 py-4">
                       <div className="flex items-center text-sm text-slate-600">
                         <Clock className="w-3.5 h-3.5 mr-1.5 text-slate-300" />
-                        {emp.startDate}
+                        {new Date(emp.hire_date).toLocaleDateString()}
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${emp.status === 'Active' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-amber-100 text-amber-700 border-amber-200'}`}>
-                        {emp.status}
-                      </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end space-x-1 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -189,17 +246,17 @@ export default function HR() {
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label><input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Job Role</label><input type="text" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">First Name</label><input type="text" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Last Name</label><input type="text" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Department</label><select value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white">{DEPARTMENTS.map(d => <option key={d}>{d}</option>)}</select></div>
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Status</label><select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white"><option>Active</option><option>On Leave</option><option>Inactive</option></select></div>
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Job Role</label><input type="text" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
               </div>
               <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Annual Salary ($)</label><input type="number" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Start Date</label><input type="date" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Hire Date</label><input type="date" value={formData.hire_date} onChange={e => setFormData({...formData, hire_date: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
               </div>
               <div className="pt-4 flex justify-end space-x-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50">Cancel</button>

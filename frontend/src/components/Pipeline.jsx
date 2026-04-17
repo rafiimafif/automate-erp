@@ -1,62 +1,106 @@
-import React, { useState } from 'react';
-import { Kanban, Plus, Calendar, MessageSquare, Paperclip, Edit, Trash2, X, AlertCircle } from 'lucide-react';
-
-const initialDeals = [
-  { id: '1', title: 'Enterprise Software License', client: 'Acme Corp', value: 12000, days: 2, stage: 'Lead' },
-  { id: '2', title: 'Consulting Package C', client: 'Globex Inc', value: 4500, days: 1, stage: 'Lead' },
-  { id: '3', title: 'Website Redesign', client: 'Studio One', value: 8200, days: 5, stage: 'Contacted' },
-  { id: '4', title: 'Bulk Hardware Order', client: 'TechNova', value: 34000, days: 12, stage: 'Negotiating' },
-  { id: '5', title: 'Annual Server Maintenance', client: 'Stark Ind.', value: 2400, days: 8, stage: 'Negotiating' },
-  { id: '6', title: 'Q4 Marketing Campaign', client: 'Wayne Ent.', value: 15000, days: 0, stage: 'Won' }
-];
+import React, { useState, useEffect } from 'react';
+import { Kanban, Plus, Calendar, MessageSquare, Paperclip, Edit, Trash2, X, AlertCircle, Loader2 } from 'lucide-react';
+import { api } from '../api/endpoints';
 
 const STAGES = [
-  { id: 'Lead', label: 'Lead', color: 'bg-slate-200 text-slate-700', border: 'border-slate-300' },
-  { id: 'Contacted', label: 'Contacted', color: 'bg-blue-200 text-blue-700', border: 'border-blue-300' },
-  { id: 'Negotiating', label: 'Negotiating', color: 'bg-amber-200 text-amber-700', border: 'border-amber-300' },
-  { id: 'Won', label: 'Won', color: 'bg-emerald-200 text-emerald-800', border: 'border-emerald-300' }
+  { id: 'discovery', label: 'Discovery', color: 'bg-slate-200 text-slate-700', border: 'border-slate-300' },
+  { id: 'proposal', label: 'Proposal', color: 'bg-blue-200 text-blue-700', border: 'border-blue-300' },
+  { id: 'negotiation', label: 'Negotiation', color: 'bg-amber-200 text-amber-700', border: 'border-amber-300' },
+  { id: 'won', label: 'Won', color: 'bg-emerald-200 text-emerald-800', border: 'border-emerald-300' },
+  { id: 'lost', label: 'Lost', color: 'bg-red-200 text-red-800', border: 'border-red-300' }
 ];
 
 export default function Pipeline() {
-  const [deals, setDeals] = useState(initialDeals);
+  const [deals, setDeals] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ title: '', client: '', value: '', days: 0, stage: 'Lead' });
+  const [formData, setFormData] = useState({ title: '', customer_name: '', deal_value: '', stage: 'discovery' });
+
+  const fetchDeals = async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.deals.list();
+      setDeals(data);
+    } catch (err) {
+      setError('Failed to fetch pipeline data.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDeals();
+  }, []);
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
-  const handleDelete = (id, e) => {
-    e.stopPropagation(); // Prevent opening edit modal
-    setDeals(deals.filter(d => d.id !== id));
+  const handleDelete = async (id, e) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this deal?')) return;
+    try {
+      await api.deals.delete(id);
+      setDeals(deals.filter(d => d.id !== id));
+    } catch (err) {
+      alert('Failed to delete deal.');
+    }
   };
 
   const openCreateModal = () => {
-    setFormData({ title: '', client: '', value: '', days: 0, stage: 'Lead' });
+    setFormData({ title: 'New Deal', customer_name: '', deal_value: '', stage: 'discovery' });
     setEditingId(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (deal, e) => {
     if (e) e.stopPropagation();
-    setFormData({ title: deal.title, client: deal.client, value: deal.value, days: deal.days, stage: deal.stage });
+    setFormData({ 
+      title: deal.customer_name + ' Deal', // Backend didn't have title, using derived
+      customer_name: deal.customer_name, 
+      deal_value: deal.deal_value, 
+      stage: deal.stage 
+    });
     setEditingId(deal.id);
     setIsModalOpen(true);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.client) return;
+    if (!formData.customer_name || !formData.deal_value) return;
 
-    if (editingId) {
-      setDeals(deals.map(d => d.id === editingId ? { ...d, ...formData } : d));
-    } else {
-      const newId = `DEAL-${Date.now()}`;
-      setDeals([...deals, { id: newId, ...formData }]);
+    try {
+      const payload = {
+        customer_name: formData.customer_name,
+        deal_value: parseFloat(formData.deal_value),
+        stage: formData.stage
+      };
+
+      if (editingId) {
+        const updated = await api.deals.update(editingId, payload);
+        setDeals(deals.map(d => d.id === editingId ? updated : d));
+      } else {
+        const created = await api.deals.create(payload);
+        setDeals([...deals, created]);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      alert(err.message || 'Failed to save deal.');
     }
-    setIsModalOpen(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Syncing Pipeline...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50 p-8 relative">
@@ -78,6 +122,14 @@ export default function Pipeline() {
             Add Deal
           </button>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-center text-red-700">
+            <AlertCircle className="w-5 h-5 mr-3" />
+            <p className="font-medium">{error}</p>
+            <button onClick={fetchDeals} className="ml-auto underline font-bold">Retry</button>
+          </div>
+        )}
 
         {/* Kanban Board Layout */}
         <div className="flex-1 min-h-0 overflow-x-auto pb-4 custom-scrollbar">
@@ -117,20 +169,19 @@ export default function Pipeline() {
 
                       <div className="flex justify-between items-start mb-3">
                         <div className={`text-xs font-bold px-2 py-0.5 rounded border ${stagecol.color} ${stagecol.border}`}>
-                          {formatCurrency(card.value)}
+                          {formatCurrency(card.deal_value)}
                         </div>
                       </div>
-                      <h4 className="font-bold text-slate-800 text-sm mb-1 leading-snug pr-6">{card.title}</h4>
-                      <p className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider">{card.client}</p>
+                      <h4 className="font-bold text-slate-800 text-sm mb-1 leading-snug pr-6">{card.customer_name} Project</h4>
+                      <p className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider">{card.customer_name}</p>
                       
                       <div className="flex items-center justify-between mt-auto border-t border-slate-50 pt-3">
                         <div className="flex space-x-3 text-xs text-slate-400 font-medium">
-                          <span className="flex items-center hover:text-blue-600 transition-colors"><MessageSquare className="w-3.5 h-3.5 mr-1" /> 2</span>
-                          <span className="flex items-center hover:text-blue-600 transition-colors"><Paperclip className="w-3.5 h-3.5 mr-1" /> 1</span>
+                          <span className="flex items-center hover:text-blue-600 transition-colors"><MessageSquare className="w-3.5 h-3.5 mr-1" /> 0</span>
                         </div>
                         <div className="flex items-center text-xs font-medium text-slate-400">
-                          <Calendar className={`w-3.5 h-3.5 mr-1 ${card.days > 10 ? 'text-amber-500' : ''}`} />
-                          {card.days}d open
+                          <Calendar className="w-3.5 h-3.5 mr-1" />
+                          {new Date(card.created_at).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
@@ -169,31 +220,21 @@ export default function Pipeline() {
             
             <form onSubmit={handleSave} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Deal Title</label>
-                <input type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" placeholder="e.g. Enterprise Software License" required />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Client Identity</label>
-                <input type="text" value={formData.client} onChange={(e) => setFormData({...formData, client: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" placeholder="Acme Corp" required />
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Client Name</label>
+                <input type="text" value={formData.customer_name} onChange={(e) => setFormData({...formData, customer_name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" placeholder="Acme Corp" required />
               </div>
               
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Deal Value ($)</label>
-                  <input type="number" min="0" value={formData.value} onChange={(e) => setFormData({...formData, value: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" required />
+                  <input type="number" min="0" value={formData.deal_value} onChange={(e) => setFormData({...formData, deal_value: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Days Open</label>
-                  <input type="number" min="0" value={formData.days} onChange={(e) => setFormData({...formData, days: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" />
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Stage</label>
+                  <select value={formData.stage} onChange={(e) => setFormData({...formData, stage: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm bg-white font-medium text-blue-700">
+                    {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Pipeline Stage (Moves the card!)</label>
-                <select value={formData.stage} onChange={(e) => setFormData({...formData, stage: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm bg-white font-medium text-blue-700">
-                  {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-                </select>
               </div>
 
               <div className="pt-4 flex justify-end space-x-3">

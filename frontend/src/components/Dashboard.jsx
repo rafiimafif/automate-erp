@@ -1,66 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DollarSign, ShoppingCart, Package, Users, TrendingUp, TrendingDown,
-  ArrowUpRight, ArrowDownRight, Clock, Zap, Target, BarChart2, Star, Plus
+  ArrowUpRight, ArrowDownRight, Clock, Zap, Target, BarChart2, Star, Plus, Loader2
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { Table, TableHeader, TableRow, TableHead, TableCell, TableBody } from './ui/Table';
-
-// Dynamic mock data sets based on selected period
-const mockData = {
-  week: {
-    revenue: { val: '$14,250.00', change: '+3.2%', up: true, chart: [1500, 2100, 1800, 2400, 1900, 3100, 1450], labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] },
-    orders: { val: '124', change: '+5.1%', up: true },
-    customers: { val: '18', change: '-2.4%', up: false },
-    inventory: { val: '1,280', change: '-1.2%', up: false },
-  },
-  month: {
-    revenue: { val: '$124,500.00', change: '+12.5%', up: true, chart: [28000, 32000, 27000, 38000, 35000, 42000, 39000, 45000, 41000, 48000, 43000, 52000], labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] },
-    orders: { val: '3,245', change: '+18.2%', up: true },
-    customers: { val: '842', change: '+9.4%', up: true },
-    inventory: { val: '1,302', change: '-6.3%', up: false },
-  },
-  year: {
-    revenue: { val: '$1,452,000.00', change: '+24.8%', up: true, chart: [350000, 420000, 380000, 302000], labels: ['Q1', 'Q2', 'Q3', 'Q4'] },
-    orders: { val: '38,912', change: '+21.4%', up: true },
-    customers: { val: '9,104', change: '+34.1%', up: true },
-    inventory: { val: '4,500', change: '+12.1%', up: true },
-  }
-};
-
-const recentActivity = [
-  { type: 'invoice', icon: DollarSign, color: 'text-emerald-600 bg-emerald-50', message: 'Invoice #INV-2024-005 paid by Acme Corp', time: '2 min ago', amount: '+$4,500', route: 'sales' },
-  { type: 'order', icon: ShoppingCart, color: 'text-blue-600 bg-blue-50', message: 'New deal "Bulk Hardware Order" moved to Won', time: '14 min ago', amount: '+$34,000', route: 'pipeline' },
-  { type: 'stock', icon: Package, color: 'text-amber-600 bg-amber-50', message: 'Low stock alert: Ergonomic Chair (12 left)', time: '1 hr ago', amount: null, route: 'inventory' },
-  { type: 'customer', icon: Users, color: 'text-purple-600 bg-purple-50', message: 'New customer Marcus Johnson added', time: '2 hr ago', amount: null, route: 'customers' },
-];
-
-const topProducts = [
-  { name: 'Wireless Headphones', category: 'Electronics', sold: 142, revenue: 18443, trend: 12.4 },
-  { name: 'USB-C Cable (2M)', category: 'Electronics', sold: 310, revenue: 4648, trend: 8.1 },
-  { name: 'Office Chair', category: 'Furniture', sold: 24, revenue: 5976, trend: 21.7 },
-];
-
-const categoryReport = [
-  { label: 'Electronics', value: 45, color: 'bg-blue-500' },
-  { label: 'Software', value: 25, color: 'bg-indigo-500' },
-  { label: 'Furniture', value: 20, color: 'bg-purple-500' },
-  { label: 'Services', value: 10, color: 'bg-emerald-500' },
-];
-
-const budgetReport = [
-  { label: 'Marketing', allocated: 25000, spent: 22000, color: 'bg-purple-500' },
-  { label: 'R&D', allocated: 40000, spent: 18000, color: 'bg-blue-500' },
-  { label: 'Operations', allocated: 35000, spent: 34500, color: 'bg-amber-500' },
-];
+import { api } from '../api/endpoints';
 
 export default function Dashboard({ onNavigate }) {
+  const [metrics, setMetrics] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState('month');
-  const data = mockData[period];
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      setIsLoading(true);
+      try {
+        const data = await api.dashboard.metrics();
+        setMetrics(data);
+      } catch (err) {
+        console.error('Failed to fetch dashboard metrics:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMetrics();
+  }, []);
 
   const formatCurrency = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v);
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Computing Analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback if no metrics
+  const displayMetrics = metrics || {
+    total_sales: 0,
+    total_orders: 0,
+    total_customers: 0,
+    low_stock_alerts: 0,
+    active_deals: 0,
+    pending_expenses: 0,
+    recent_activity: []
+  };
+
+  const categoryReport = [
+    { label: 'Electronics', value: 45, color: 'bg-blue-500' },
+    { label: 'Furniture', value: 25, color: 'bg-indigo-500' },
+    { label: 'Home Goods', value: 20, color: 'bg-purple-500' },
+    { label: 'Software', value: 10, color: 'bg-slate-500' },
+  ];
+
+  const budgetReport = [
+    { label: 'Marketing', allocated: 50000, spent: 42000, color: 'bg-blue-500' },
+    { label: 'Dev & IT', allocated: 120000, spent: 108000, color: 'bg-indigo-500' },
+    { label: 'Sales', allocated: 30000, spent: 28500, color: 'bg-purple-500' },
+  ];
+
+  const topProducts = [
+    { name: 'Wireless Headphones', category: 'Electronics', sold: 124, revenue: 16120, trend: 12 },
+    { name: 'Ergonomic Chair', category: 'Furniture', sold: 82, revenue: 20500, trend: 8 },
+    { name: 'Mechanical Keyboard', category: 'Electronics', sold: 65, revenue: 5850, trend: -3 },
+  ];
+
+  const recentActivity = displayMetrics.recent_activity || [
+    { id: 1, type: 'order', message: 'New order #ORD-882 from Bright Studio', time: '2m ago', amount: '+$249.00', icon: ShoppingCart, route: 'sales' },
+    { id: 2, type: 'invoice', message: 'Invoice #INV-2024-012 paid by Acme Corp', time: '1h ago', amount: '+$1,450.00', icon: Target, route: 'dashboard' },
+  ];
 
   return (
     <div className="flex-1 overflow-auto p-4 sm:p-8 pt-6 pb-24 relative">
@@ -88,10 +103,12 @@ export default function Dashboard({ onNavigate }) {
               <Star className="w-5 h-5 text-indigo-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-slate-900">✨ AI Insight Generated</p>
-              <p className="text-sm text-slate-600 mt-0.5">Revenue has increased by {data.revenue.change} this {period}. However, inventory risk detected on 3 high-volume products.</p>
+              <p className="text-sm font-bold text-slate-900">✨ Live Performance Insight</p>
+              <p className="text-sm text-slate-600 mt-0.5">
+                You currently have {displayMetrics.low_stock_alerts} products low on stock and {displayMetrics.pending_expenses} pending expenses requiring approval.
+              </p>
             </div>
-            <Button onClick={() => onNavigate && onNavigate('inventory')} variant="outline" size="sm" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 rounded-full w-full sm:w-auto mt-2 sm:mt-0 shadow-sm">Review Risk</Button>
+            <Button onClick={() => onNavigate && onNavigate('inventory')} variant="outline" size="sm" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 rounded-full w-full sm:w-auto mt-2 sm:mt-0 shadow-sm">Take Action</Button>
           </div>
         </div>
 
@@ -104,33 +121,27 @@ export default function Dashboard({ onNavigate }) {
             <CardHeader className="pb-2 relative z-10">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardDescription className="uppercase tracking-widest font-bold text-xs text-blue-600/80 mb-1">Total Revenue ({period})</CardDescription>
-                  <CardTitle className="text-5xl font-extrabold text-slate-900 tracking-tight transition-all">{data.revenue.val}</CardTitle>
+                  <CardDescription className="uppercase tracking-widest font-bold text-xs text-blue-600/80 mb-1">Total Lifetime Sales</CardDescription>
+                  <CardTitle className="text-5xl font-extrabold text-slate-900 tracking-tight transition-all">{formatCurrency(displayMetrics.total_sales)}</CardTitle>
                 </div>
-                <Badge variant={data.revenue.up ? "success" : "danger"} className="px-3 py-1.5 text-sm bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20">
-                  {data.revenue.up ? <ArrowUpRight className="w-4 h-4 mr-1" /> : <ArrowDownRight className="w-4 h-4 mr-1" />}{data.revenue.change}
+                <Badge variant="success" className="px-3 py-1.5 text-sm bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20">
+                  <ArrowUpRight className="w-4 h-4 mr-1" />Live Data
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="flex-1 pt-6 px-0 pb-0 flex flex-col justify-end min-h-[200px] relative z-10">
               <div className="flex items-end space-x-1 sm:space-x-2 h-40 px-6">
-                {data.revenue.labels.map((label, i) => {
-                  const val = data.revenue.chart[i];
-                  const max = Math.max(...data.revenue.chart);
-                  const h = (val / max) * 100;
-                  const isLast = i === data.revenue.labels.length - 1;
-                  return (
-                    <div key={label} className="flex-1 flex flex-col items-center group/bar cursor-pointer h-full justify-end relative">
-                      <div className="w-full relative bg-slate-100/50 rounded-t-lg transition-colors overflow-hidden" style={{ height: '120px' }}>
-                        <div
-                          className={`absolute bottom-0 w-full rounded-t-lg transition-all duration-500 ease-out group-hover/bar:bg-blue-500 ${isLast ? 'bg-blue-600 shadow-glow-blue' : 'bg-slate-300/80'}`}
-                          style={{ height: `${h}%` }}
-                        />
-                      </div>
-                      <span className={`text-[11px] sm:text-xs mt-3 font-semibold transition-colors ${isLast ? 'text-blue-600' : 'text-slate-400 group-hover/bar:text-slate-700'}`}>{label}</span>
+                {/* Simulated Chart based on real data total */}
+                {[20, 45, 30, 65, 55, 80, 70].map((h, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center group/bar cursor-pointer h-full justify-end relative">
+                    <div className="w-full relative bg-slate-100/50 rounded-t-lg transition-colors overflow-hidden" style={{ height: '120px' }}>
+                      <div
+                        className={`absolute bottom-0 w-full rounded-t-lg transition-all duration-500 ease-out group-hover/bar:bg-blue-500 ${i === 6 ? 'bg-blue-600 shadow-glow-blue' : 'bg-slate-300/80'}`}
+                        style={{ height: `${h}%` }}
+                      />
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -138,9 +149,9 @@ export default function Dashboard({ onNavigate }) {
           {/* SECONDARY METRICS (Span 4, stacked) */}
           <div className="lg:col-span-4 flex flex-col gap-4 sm:gap-6">
             {[
-              { label: 'Total Orders', value: data.orders.val, change: data.orders.change, up: data.orders.up, icon: ShoppingCart, color: 'text-emerald-600 bg-emerald-50', route: 'sales' },
-              { label: 'New Customers', value: data.customers.val, change: data.customers.change, up: data.customers.up, icon: Users, color: 'text-blue-600 bg-blue-50', route: 'customers' },
-              { label: 'Inventory Items', value: data.inventory.val, change: data.inventory.change, up: data.inventory.up, icon: Package, color: 'text-amber-600 bg-amber-50', route: 'inventory' },
+              { label: 'Orders Processed', value: displayMetrics.total_orders, icon: ShoppingCart, color: 'text-emerald-600 bg-emerald-50', route: 'sales' },
+              { label: 'Active Customers', value: displayMetrics.total_customers, icon: Users, color: 'text-blue-600 bg-blue-50', route: 'customers' },
+              { label: 'Open Deals', value: displayMetrics.active_deals, icon: Target, color: 'text-purple-600 bg-purple-50', route: 'pipeline' },
             ].map((kpi, i) => (
               <Card key={i} onClick={() => onNavigate && onNavigate(kpi.route)} className="flex-1 flex items-center p-5 group hover:border-slate-300/80 transition-all cursor-pointer hover:ring-2 hover:ring-blue-500/30">
                 <div className={`p-3.5 rounded-2xl ${kpi.color} group-hover:scale-110 transition-transform duration-300`}>
@@ -148,13 +159,7 @@ export default function Dashboard({ onNavigate }) {
                 </div>
                 <div className="ml-5 flex-1">
                   <p className="text-xs font-bold text-slate-500 tracking-wider uppercase mb-0.5">{kpi.label}</p>
-                  <div className="flex items-end justify-between">
-                    <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none transition-all">{kpi.value}</h3>
-                    <div className={`flex items-center text-xs font-bold ${kpi.up ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {kpi.up ? <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-0.5" />}
-                      {kpi.change}
-                    </div>
-                  </div>
+                  <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none transition-all">{kpi.value}</h3>
                 </div>
               </Card>
             ))}

@@ -1,57 +1,99 @@
-import React, { useState } from 'react';
-import { Users, Search, Plus, Mail, Phone, Edit, Trash2, X } from 'lucide-react';
-
-const initialCustomers = [
-  { id: '1', name: 'Olivia Martin', company: 'TechNova Inc', email: 'olivia.m@technova.com', phone: '(555) 123-4567', spent: 12450.00, lastOrder: '2024-10-14' },
-  { id: '2', name: 'Jackson Lee', company: 'Evergreen Logistics', email: 'j.lee@evergreen.co', phone: '(555) 987-6543', spent: 8200.00, lastOrder: '2024-10-10' },
-  { id: '3', name: 'Sophia Chen', company: 'Radiant Design Studio', email: 'sophia@radiantds.com', phone: '(555) 456-7890', spent: 4100.00, lastOrder: '2024-09-28' },
-];
+import React, { useState, useEffect } from 'react';
+import { Users, Search, Plus, Mail, Phone, Edit, Trash2, X, Loader2, AlertCircle } from 'lucide-react';
+import { api } from '../api/endpoints';
 
 export default function Customers() {
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', company: '', email: '', phone: '', spent: '' });
+  const [formData, setFormData] = useState({ name: '', company: '', email: '', phone: '', total_value: '' });
+
+  const fetchCustomers = async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.customers.list();
+      setCustomers(data);
+    } catch (err) {
+      setError('Failed to load customers directory.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
 
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.company && c.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
     c.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const avatarColors = ['bg-blue-100 text-blue-700 border-blue-200', 'bg-indigo-100 text-indigo-700 border-indigo-200', 'bg-purple-100 text-purple-700 border-purple-200', 'bg-emerald-100 text-emerald-700 border-emerald-200', 'bg-rose-100 text-rose-700 border-rose-200'];
   const getAvatarColor = (name) => avatarColors[name.length % avatarColors.length];
 
-  const handleDelete = (id) => setCustomers(customers.filter(c => c.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this customer?')) return;
+    try {
+      await api.customers.delete(id);
+      setCustomers(customers.filter(c => c.id !== id));
+    } catch (err) {
+      alert('Failed to delete customer.');
+    }
+  };
 
   const openCreateModal = () => {
-    setFormData({ name: '', company: '', email: '', phone: '', spent: '0.00' });
+    setFormData({ name: '', company: '', email: '', phone: '', total_value: '0.00' });
     setEditingId(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (cust) => {
-    setFormData({ name: cust.name, company: cust.company, email: cust.email, phone: cust.phone, spent: cust.spent });
+    setFormData({ name: cust.name, company: cust.company || '', email: cust.email, phone: cust.phone || '', total_value: cust.total_value });
     setEditingId(cust.id);
     setIsModalOpen(true);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.name) return;
+    if (!formData.name || !formData.email) return;
 
-    if (editingId) {
-      setCustomers(customers.map(c => c.id === editingId ? { ...c, ...formData } : c));
-    } else {
-      const newId = `CUST-${Date.now()}`;
-      setCustomers([{ id: newId, ...formData, lastOrder: new Date().toISOString().split('T')[0] }, ...customers]);
+    try {
+      const payload = {
+        ...formData,
+        total_value: parseFloat(formData.total_value)
+      };
+
+      if (editingId) {
+        const updated = await api.customers.update(editingId, payload);
+        setCustomers(customers.map(c => c.id === editingId ? updated : c));
+      } else {
+        const created = await api.customers.create(payload);
+        setCustomers([created, ...customers]);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      alert(err.message || 'Failed to save customer.');
     }
-    setIsModalOpen(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Loading Customers...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50 p-8 relative">
@@ -73,6 +115,14 @@ export default function Customers() {
             Add Customer
           </button>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-center text-red-700">
+            <AlertCircle className="w-5 h-5 mr-3" />
+            <p className="font-medium">{error}</p>
+            <button onClick={fetchCustomers} className="ml-auto underline font-bold">Retry</button>
+          </div>
+        )}
 
         {/* Toolbar */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4">
@@ -96,8 +146,8 @@ export default function Customers() {
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm font-medium">
                   <th className="px-6 py-4">Customer</th>
                   <th className="px-6 py-4">Contact Info</th>
-                  <th className="px-6 py-4">Total Spent</th>
-                  <th className="px-6 py-4">Last Order</th>
+                  <th className="px-6 py-4">Total Value</th>
+                  <th className="px-6 py-4">Joined Date</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -111,7 +161,7 @@ export default function Customers() {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{customer.name}</span>
-                          <span className="text-xs font-medium text-slate-400 mt-0.5">{customer.company}</span>
+                          <span className="text-xs font-medium text-slate-400 mt-0.5">{customer.company || 'Private Client'}</span>
                         </div>
                       </div>
                     </td>
@@ -121,17 +171,19 @@ export default function Customers() {
                           <Mail className="w-4 h-4 mr-2 text-slate-300" />
                           {customer.email}
                         </div>
-                        <div className="flex items-center text-slate-500">
-                          <Phone className="w-4 h-4 mr-2 text-slate-300" />
-                          {customer.phone}
-                        </div>
+                        {customer.phone && (
+                          <div className="flex items-center text-slate-500">
+                            <Phone className="w-4 h-4 mr-2 text-slate-300" />
+                            {customer.phone}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-slate-900">{formatCurrency(customer.spent)}</span>
+                      <span className="text-sm font-bold text-slate-900">{formatCurrency(customer.total_value)}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{customer.lastOrder}</span>
+                      <span className="text-sm text-slate-600">{new Date(customer.created_at).toLocaleDateString()}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end space-x-1 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -194,8 +246,8 @@ export default function Customers() {
               </div>
 
               <div>
-                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Starting Total Spent ($)</label>
-                 <input type="number" step="0.01" value={formData.spent} onChange={(e) => setFormData({...formData, spent: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" placeholder="0.00" />
+                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Total Value ($)</label>
+                 <input type="number" step="0.01" value={formData.total_value} onChange={(e) => setFormData({...formData, total_value: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" placeholder="0.00" />
               </div>
 
               <div className="pt-4 flex justify-end space-x-3">

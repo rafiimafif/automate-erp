@@ -1,30 +1,40 @@
-import React, { useState } from 'react';
-import { ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, X, CheckCircle, Search, Tag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, X, CheckCircle, Search, Tag, Loader2, AlertCircle } from 'lucide-react';
+import { api } from '../api/endpoints';
 
-const posProducts = [
-  { id: 'p1', name: 'Wireless Headphones', price: 129.99, category: 'Electronics', emoji: '🎧' },
-  { id: 'p2', name: 'USB-C Cable 2M', price: 14.99, category: 'Electronics', emoji: '🔌' },
-  { id: 'p3', name: 'Ceramic Mug', price: 24.99, category: 'Home', emoji: '☕' },
-  { id: 'p4', name: 'Ergonomic Chair', price: 249.99, category: 'Furniture', emoji: '🪑' },
-  { id: 'p5', name: 'Mechanical Keyboard', price: 89.99, category: 'Electronics', emoji: '⌨️' },
-  { id: 'p6', name: 'Desk Lamp', price: 39.99, category: 'Home', emoji: '💡' },
-  { id: 'p7', name: 'Notebook Set', price: 12.99, category: 'Stationery', emoji: '📓' },
-  { id: 'p8', name: 'Water Bottle', price: 19.99, category: 'Lifestyle', emoji: '🍶' },
-  { id: 'p9', name: 'Mouse Pad XL', price: 29.99, category: 'Electronics', emoji: '🖱️' },
-  { id: 'p10', name: 'Phone Stand', price: 17.99, category: 'Electronics', emoji: '📱' },
-  { id: 'p11', name: 'Cable Organizer', price: 9.99, category: 'Home', emoji: '🗂️' },
-  { id: 'p12', name: 'LED Strip Lights', price: 34.99, category: 'Home', emoji: '💜' },
-];
-
-const CATEGORIES = ['All', 'Electronics', 'Home', 'Furniture', 'Stationery', 'Lifestyle'];
+const CATEGORIES = ['All', 'Electronics', 'Electronics', 'Office', 'Furniture', 'Software'];
 
 export default function POS() {
+  const [products, setProducts] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [cart, setCart] = useState([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [discount, setDiscount] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState('Card');
+  const [paymentMethod, setPaymentMethod] = useState('card');
   const [isSuccess, setIsSuccess] = useState(false);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [prods, custs] = await Promise.all([
+        api.inventory.list(),
+        api.customers.list()
+      ]);
+      setProducts(prods);
+      setCustomers(custs);
+    } catch (err) {
+      setError('Failed to load POS data.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const addToCart = (product) => {
     setCart(prev => {
@@ -45,16 +55,55 @@ export default function POS() {
   const tax = (subtotal - discountAmount) * 0.09;
   const total = subtotal - discountAmount + tax;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) return;
-    setIsSuccess(true);
-    setTimeout(() => { setIsSuccess(false); setCart([]); setDiscount(0); }, 2500);
+    try {
+      // Pick first customer for POS (usually a 'Walk-in' customer)
+      const customerId = customers[0]?.id;
+      if (!customerId) {
+        alert('Please add at least one customer first to process sales.');
+        return;
+      }
+
+      const orderPayload = {
+        customer: customerId,
+        total_amount: total,
+        status: 'completed',
+        payment_method: paymentMethod,
+        items: cart.map(item => ({
+          product: item.id,
+          quantity: item.qty,
+          price: item.price
+        }))
+      };
+
+      await api.orders.create(orderPayload);
+      setIsSuccess(true);
+      setTimeout(() => { 
+        setIsSuccess(false); 
+        setCart([]); 
+        setDiscount(0); 
+      }, 2500);
+    } catch (err) {
+      alert('Checkout failed. Please try again.');
+    }
   };
 
-  const filteredProducts = posProducts.filter(p =>
+  const filteredProducts = products.filter(p =>
     (activeCategory === 'All' || p.category === activeCategory) &&
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Opening Terminal...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex overflow-hidden bg-slate-100">
@@ -74,13 +123,21 @@ export default function POS() {
           </div>
           {/* Category Pills */}
           <div className="flex space-x-2 overflow-x-auto pb-1">
-            {CATEGORIES.map(cat => (
-              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+            {['All', ...new Set(products.map(p => p.category))].map(cat => (
+              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap capitalize transition-all ${activeCategory === cat ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 {cat}
               </button>
             ))}
           </div>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl m-6 flex items-center text-red-700">
+            <AlertCircle className="w-5 h-5 mr-3" />
+            <p className="font-medium">{error}</p>
+            <button onClick={fetchData} className="ml-auto underline font-bold">Retry</button>
+          </div>
+        )}
 
         {/* Product Cards */}
         <div className="flex-1 overflow-y-auto p-6">
@@ -96,14 +153,20 @@ export default function POS() {
                   {cartItem && (
                     <div className="absolute top-2 right-2 w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-bold flex items-center justify-center">{cartItem.qty}</div>
                   )}
-                  <div className="text-3xl mb-3">{product.emoji}</div>
+                  <div className="w-10 h-10 bg-slate-50 text-blue-600 rounded-lg flex items-center justify-center mb-3 font-bold">{product.name.charAt(0)}</div>
                   <p className="text-sm font-semibold text-slate-800 group-hover:text-blue-600 transition-colors leading-snug">{product.name}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{product.category}</p>
-                  <p className="text-base font-extrabold text-slate-900 mt-2">${product.price.toFixed(2)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5 capitalize">{product.category}</p>
+                  <p className="text-base font-extrabold text-slate-900 mt-2">${Number(product.price).toFixed(2)}</p>
                   <div className="absolute inset-0 rounded-xl bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                 </button>
               );
             })}
+            {products.length === 0 && !isLoading && (
+              <div className="col-span-full py-20 text-center space-y-3">
+                <Tag className="w-12 h-12 text-slate-200 mx-auto" />
+                <p className="text-slate-400 font-medium">No products available. Please add items to Inventory first.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -113,7 +176,7 @@ export default function POS() {
         <div className="px-5 py-4 border-b border-slate-200">
           <h2 className="font-bold text-slate-800 flex items-center justify-between">
             Current Order
-            {cart.length > 0 && <button onClick={() => setCart([])} className="text-xs text-red-400 hover:text-red-600 font-medium">Clear all</button>}
+            {cart.length > 0 && <button onClick={() => setCart([])} className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors">Clear all</button>}
           </h2>
         </div>
 
@@ -127,15 +190,15 @@ export default function POS() {
             </div>
           ) : cart.map(item => (
             <div key={item.id} className="flex items-center space-x-3 bg-slate-50 rounded-xl p-3 group">
-              <span className="text-xl">{item.emoji}</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">{item.name.charAt(0)}</div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-slate-800 truncate">{item.name}</p>
-                <p className="text-xs text-slate-500">${item.price.toFixed(2)}</p>
+                <p className="text-xs text-slate-500">${Number(item.price).toFixed(2)}</p>
               </div>
               <div className="flex items-center space-x-1">
-                <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 rounded-full bg-slate-200 hover:bg-blue-100 flex items-center justify-center transition-colors"><Minus className="w-3 h-3" /></button>
+                <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 rounded-full bg-slate-200 hover:bg-blue-100 flex items-center justify-center transition-colors"><Minus className="w-3 h-3 text-slate-600" /></button>
                 <span className="w-5 text-center text-sm font-bold">{item.qty}</span>
-                <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 rounded-full bg-slate-200 hover:bg-blue-100 flex items-center justify-center transition-colors"><Plus className="w-3 h-3" /></button>
+                <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 rounded-full bg-slate-200 hover:bg-blue-100 flex items-center justify-center transition-colors"><Plus className="w-3 h-3 text-slate-600" /></button>
               </div>
               <button onClick={() => removeFromCart(item.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
             </div>
@@ -165,8 +228,8 @@ export default function POS() {
 
           {/* Payment Method */}
           <div className="grid grid-cols-3 gap-2">
-            {[{id:'Card', icon: CreditCard}, {id:'Cash', icon: DollarSign}, {id:'QR', icon: Smartphone}].map(m => (
-              <button key={m.id} onClick={() => setPaymentMethod(m.id)} className={`flex flex-col items-center py-2.5 rounded-xl border text-xs font-semibold transition-all ${paymentMethod === m.id ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-500 hover:border-blue-200'}`}>
+            {[{id:'card', icon: CreditCard}, {id:'cash', icon: DollarSign}, {id:'qr', icon: Smartphone}].map(m => (
+              <button key={m.id} onClick={() => setPaymentMethod(m.id)} className={`flex flex-col items-center py-2.5 rounded-xl border text-xs font-semibold transition-all capitalize ${paymentMethod === m.id ? 'border-blue-500 bg-blue-50 text-blue-600 shadow-sm' : 'border-slate-200 text-slate-500 hover:border-blue-200'}`}>
                 <m.icon className="w-4 h-4 mb-1" />{m.id}
               </button>
             ))}

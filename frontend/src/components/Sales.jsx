@@ -1,24 +1,37 @@
-import React, { useState, useMemo } from 'react';
-import { ShoppingCart, Search, Plus, Filter, Download, ArrowUpRight, Edit, Trash2, X, FileText } from 'lucide-react';
-
-const initialInvoices = [
-  { id: 'INV-2024-001', client: 'Acme Corp', date: '2024-10-14', due: '2024-10-28', amount: 4500.00, status: 'Paid' },
-  { id: 'INV-2024-002', client: 'Globex Inc', date: '2024-10-12', due: '2024-10-26', amount: 1250.00, status: 'Pending' },
-  { id: 'INV-2024-003', client: 'Stark Industries', date: '2024-10-05', due: '2024-10-19', amount: 9800.00, status: 'Overdue' },
-  { id: 'INV-2024-004', client: 'Wayne Enterprises', date: '2024-10-01', due: '2024-10-15', amount: 3450.00, status: 'Paid' },
-];
+import React, { useState, useMemo, useEffect } from 'react';
+import { ShoppingCart, Search, Plus, Filter, Download, ArrowUpRight, Edit, Trash2, X, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { api } from '../api/endpoints';
 
 export default function Sales() {
-  const [invoices, setInvoices] = useState(initialInvoices);
+  const [invoices, setInvoices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ client: '', date: '', amount: '', status: 'Pending' });
+  const [formData, setFormData] = useState({ customer_name: '', customer_email: '', amount: '', status: 'pending' });
 
   // Format currency
   const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+
+  const fetchInvoices = async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.orders.list();
+      setInvoices(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch sales data. Please check your connection.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
 
   // Dynamic Stats calculations
   const stats = useMemo(() => {
@@ -29,66 +42,92 @@ export default function Sales() {
     let overdueAmt = 0;
 
     invoices.forEach(inv => {
-      if (inv.status === 'Paid') totalRev += Number(inv.amount);
-      if (inv.status === 'Pending') { pendingCount++; pendingAmt += Number(inv.amount); }
-      if (inv.status === 'Overdue') { overdueCount++; overdueAmt += Number(inv.amount); }
+      const amt = Number(inv.total_amount);
+      if (inv.status === 'paid') totalRev += amt;
+      if (inv.status === 'pending') { pendingCount++; pendingAmt += amt; }
+      if (inv.status === 'overdue') { overdueCount++; overdueAmt += amt; }
     });
     return { totalRev, pendingCount, pendingAmt, overdueCount, overdueAmt };
   }, [invoices]);
 
   // Filtering
   const filteredInvoices = invoices.filter(inv => 
-    inv.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    inv.client.toLowerCase().includes(searchTerm.toLowerCase())
+    String(inv.id).includes(searchTerm) || 
+    inv.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'Paid': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'Pending': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'Overdue': return 'bg-red-100 text-red-700 border-red-200';
+    switch(status?.toLowerCase()) {
+      case 'paid': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'pending': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'overdue': return 'bg-red-100 text-red-700 border-red-200';
       default: return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
 
   // Handlers
-  const handleDelete = (id) => {
-    setInvoices(invoices.filter(i => i.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this invoice?')) return;
+    try {
+      await api.orders.delete(id);
+      setInvoices(invoices.filter(i => i.id !== id));
+    } catch (err) {
+      alert('Failed to delete invoice');
+    }
   };
 
   const openCreateModal = () => {
-    setFormData({ client: '', date: new Date().toISOString().split('T')[0], amount: '', status: 'Pending' });
+    setFormData({ customer_name: '', customer_email: '', amount: '', status: 'pending' });
     setEditingId(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (inv) => {
-    setFormData({ client: inv.client, date: inv.date, amount: inv.amount, status: inv.status });
+    setFormData({ 
+      customer_name: inv.customer_name, 
+      customer_email: inv.customer_email || '', 
+      amount: inv.total_amount, 
+      status: inv.status 
+    });
     setEditingId(inv.id);
     setIsModalOpen(true);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.client || !formData.amount || !formData.date) return;
+    if (!formData.customer_name || !formData.amount) return;
 
-    // Generate Due Date (+14 days)
-    const issueDate = new Date(formData.date);
-    const dueDateObj = new Date(issueDate);
-    dueDateObj.setDate(dueDateObj.getDate() + 14);
-    const dueStr = dueDateObj.toISOString().split('T')[0];
+    try {
+      const payload = {
+        customer_name: formData.customer_name,
+        customer_email: formData.customer_email || 'client@example.com',
+        total_amount: parseFloat(formData.amount),
+        status: formData.status.toLowerCase()
+      };
 
-    if (editingId) {
-      // Update
-      setInvoices(invoices.map(i => i.id === editingId ? { ...i, ...formData, due: dueStr } : i));
-    } else {
-      // Create new
-      const newId = `INV-2024-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
-      const newInvoice = { id: newId, ...formData, due: dueStr };
-      setInvoices([newInvoice, ...invoices]);
+      if (editingId) {
+        const updated = await api.orders.update(editingId, payload);
+        setInvoices(invoices.map(i => i.id === editingId ? updated : i));
+      } else {
+        const created = await api.orders.create(payload);
+        setInvoices([created, ...invoices]);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      alert(err.message || 'Failed to save invoice');
     }
-    setIsModalOpen(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Loading Sales Data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50 p-8 relative">
@@ -113,6 +152,14 @@ export default function Sales() {
             Create Invoice
           </button>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-center text-red-700">
+            <AlertCircle className="w-5 h-5 mr-3" />
+            <p className="font-medium">{error}</p>
+            <button onClick={fetchInvoices} className="ml-auto underline font-bold">Retry</button>
+          </div>
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -168,7 +215,7 @@ export default function Sales() {
                   <th className="px-6 py-4 cursor-pointer hover:text-slate-700">Invoice ID</th>
                   <th className="px-6 py-4">Client</th>
                   <th className="px-6 py-4">Amount</th>
-                  <th className="px-6 py-4">Issued / Due</th>
+                  <th className="px-6 py-4">Issue Date</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -178,22 +225,19 @@ export default function Sales() {
                   <tr key={inv.id} className="hover:bg-blue-50/30 transition-colors group">
                     <td className="px-6 py-4 flex items-center">
                       <FileText className="w-4 h-4 text-slate-300 mr-2" />
-                      <span className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors cursor-pointer">{inv.id}</span>
+                      <span className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors cursor-pointer">INV-{inv.id.toString().padStart(4, '0')}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-slate-700">{inv.client}</span>
+                      <span className="text-sm font-medium text-slate-700">{inv.customer_name}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-slate-900">{formatCurrency(inv.amount)}</span>
+                      <span className="text-sm font-bold text-slate-900">{formatCurrency(inv.total_amount)}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm text-slate-900">{inv.date}</span>
-                        <span className="text-xs font-medium text-slate-400 mt-0.5">Due: {inv.due}</span>
-                      </div>
+                      <span className="text-sm text-slate-900">{new Date(inv.created_at).toLocaleDateString()}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusColor(inv.status)}`}>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border capitalize ${getStatusColor(inv.status)}`}>
                         {inv.status}
                       </span>
                     </td>
@@ -256,11 +300,22 @@ export default function Sales() {
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Client Name</label>
                 <input 
                   type="text" 
-                  value={formData.client}
-                  onChange={(e) => setFormData({...formData, client: e.target.value})}
+                  value={formData.customer_name}
+                  onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm"
                   placeholder="e.g. Wayne Enterprises"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Client Email</label>
+                <input 
+                  type="email" 
+                  value={formData.customer_email}
+                  onChange={(e) => setFormData({...formData, customer_email: e.target.value})}
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm"
+                  placeholder="client@company.com"
                 />
               </div>
               
@@ -279,28 +334,17 @@ export default function Sales() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Issue Date</label>
-                  <input 
-                    type="date" 
-                    value={formData.date}
-                    onChange={(e) => setFormData({...formData, date: e.target.value})}
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm"
-                    required
-                  />
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Payment Status</label>
+                  <select 
+                    value={formData.status}
+                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm bg-white"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="overdue">Overdue</option>
+                  </select>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Payment Status</label>
-                <select 
-                  value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm bg-white"
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Paid">Paid</option>
-                  <option value="Overdue">Overdue</option>
-                </select>
               </div>
 
               <div className="pt-4 flex justify-end space-x-3">

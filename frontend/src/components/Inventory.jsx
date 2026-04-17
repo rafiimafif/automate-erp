@@ -1,22 +1,33 @@
-import React, { useState } from 'react';
-import { Package, Search, Plus, Filter, Edit, Trash2, X } from 'lucide-react';
-
-const initialProducts = [
-  { id: 'PRD-001', name: 'Wireless Bluetooth Headphones', sku: 'AUDIO-WH-01', category: 'Electronics', price: '$129.99', stock: 45, status: 'In Stock' },
-  { id: 'PRD-002', name: 'Ergonomic Office Chair', sku: 'FURN-EOC-02', category: 'Furniture', price: '$249.00', stock: 12, status: 'Low Stock' },
-  { id: 'PRD-003', name: 'Mechanical Keyboard (Red Switches)', sku: 'COMP-MK-03', category: 'Electronics', price: '$89.50', stock: 0, status: 'Out of Stock' },
-  { id: 'PRD-004', name: 'Ceramic Coffee Mug Set', sku: 'HOME-CM-04', category: 'Home Goods', price: '$24.99', stock: 156, status: 'In Stock' },
-  { id: 'PRD-005', name: 'USB-C Fast Charging Cable (2M)', sku: 'ELEC-CBL-05', category: 'Electronics', price: '$14.99', stock: 89, status: 'In Stock' },
-];
+import React, { useState, useEffect } from 'react';
+import { Package, Search, Plus, Filter, Edit, Trash2, X, AlertCircle, Loader2 } from 'lucide-react';
+import { api } from '../api/endpoints';
 
 export default function Inventory() {
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ name: '', sku: '', category: 'Electronics', price: '', stock: '', status: 'In Stock' });
+  const [formData, setFormData] = useState({ name: '', sku: '', category: 'Electronics', unit_price: '', stock_quantity: '', status: 'In Stock' });
+
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.products.list();
+      setProducts(data);
+    } catch (err) {
+      setError('Failed to load inventory. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -32,48 +43,85 @@ export default function Inventory() {
     }
   };
 
-  const handleDelete = (id) => {
-    setProducts(products.filter(p => p.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    try {
+      await api.products.delete(id);
+      setProducts(products.filter(p => p.id !== id));
+    } catch (err) {
+      alert('Failed to delete product.');
+    }
   };
 
   const openCreateModal = () => {
-    setFormData({ name: '', sku: '', category: 'Electronics', price: '', stock: '', status: 'In Stock' });
+    setFormData({ name: '', sku: '', category: 'Electronics', unit_price: '', stock_quantity: '', status: 'In Stock' });
     setEditingId(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (prod) => {
-    setFormData({ name: prod.name, sku: prod.sku, category: prod.category, price: prod.price.replace('$', ''), stock: prod.stock, status: prod.status });
+    setFormData({ 
+      name: prod.name, 
+      sku: prod.sku, 
+      category: prod.category, 
+      unit_price: prod.unit_price, 
+      stock_quantity: prod.stock_quantity, 
+      status: prod.status 
+    });
     setEditingId(prod.id);
     setIsModalOpen(true);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.sku) return;
 
-    // determine status based on stock if user left it misaligned
-    let autoStatus = formData.status;
-    const stockVal = Number(formData.stock);
-    if (stockVal === 0) autoStatus = 'Out of Stock';
-    else if (stockVal < 20 && autoStatus === 'In Stock') autoStatus = 'Low Stock';
-    else if (stockVal >= 20 && autoStatus === 'Out of Stock') autoStatus = 'In Stock';
-
-    const priceFormatted = formData.price.startsWith('$') ? formData.price : `$${formData.price}`;
-
-    if (editingId) {
-      setProducts(products.map(p => p.id === editingId ? { ...p, ...formData, price: priceFormatted, stock: stockVal, status: autoStatus } : p));
-    } else {
-      const newId = `PRD-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
-      setProducts([{ id: newId, ...formData, price: priceFormatted, stock: stockVal, status: autoStatus }, ...products]);
+    try {
+      if (editingId) {
+        const updated = await api.products.update(editingId, {
+          ...formData,
+          unit_price: parseFloat(formData.unit_price),
+          stock_quantity: parseInt(formData.stock_quantity)
+        });
+        setProducts(products.map(p => p.id === editingId ? updated : p));
+      } else {
+        const created = await api.products.create({
+          ...formData,
+          unit_price: parseFloat(formData.unit_price),
+          stock_quantity: parseInt(formData.stock_quantity)
+        });
+        setProducts([created, ...products]);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      alert(err.message || 'Failed to save product.');
     }
-    setIsModalOpen(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Loading Inventory...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50 p-8 relative">
       <div className="max-w-7xl mx-auto space-y-6">
         
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-center text-red-700">
+            <AlertCircle className="w-5 h-5 mr-3" />
+            <p className="font-medium">{error}</p>
+            <button onClick={fetchProducts} className="ml-auto underline font-bold">Retry</button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
@@ -139,10 +187,10 @@ export default function Inventory() {
                       <span className="text-sm font-medium text-slate-700">{product.category}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-slate-900">{product.price}</span>
+                      <span className="text-sm font-bold text-slate-900">${product.unit_price}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{product.stock} units</span>
+                      <span className="text-sm text-slate-600">{product.stock_quantity} units</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusColor(product.status)}`}>
@@ -166,7 +214,7 @@ export default function Inventory() {
                        No products found. Add one above!
                      </td>
                    </tr>
-                )}
+                 )}
               </tbody>
             </table>
           </div>
@@ -212,22 +260,14 @@ export default function Inventory() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Price ($)</label>
-                  <input type="text" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm" placeholder="89.50" required />
+                  <input type="number" step="0.01" value={formData.unit_price} onChange={(e) => setFormData({...formData, unit_price: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm" placeholder="89.50" required />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Stock</label>
-                  <input type="number" min="0" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Status</label>
-                  <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm bg-white">
-                    <option value="In Stock">In Stock</option>
-                    <option value="Low Stock">Low Stock</option>
-                    <option value="Out of Stock">Out of Stock</option>
-                  </select>
+                  <input type="number" min="0" value={formData.stock_quantity} onChange={(e) => setFormData({...formData, stock_quantity: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm" required />
                 </div>
               </div>
 

@@ -1,26 +1,34 @@
 import React, { useState } from 'react';
-import { Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { api } from '../api/endpoints';
 
 export default function Login({ onLoginSuccess }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin@automate.erp');
+  const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
+    setError('');
 
-    // Simulate network request delay
-    setTimeout(() => {
-      if (username === 'admin' && password === 'admin') {
+    try {
+      const response = await api.auth.login({ username, password });
+      
+      if (response && response.tokens) {
+        // Save to local storage
+        localStorage.setItem('access_token', response.tokens.access);
+        localStorage.setItem('refresh_token', response.tokens.refresh);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        
         onLoginSuccess();
-      } else {
-        setError('Invalid username or password. Please try again.');
-        setIsLoading(false);
       }
-    }, 600);
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

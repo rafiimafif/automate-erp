@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { RefreshCw, Plus, Search, Edit, Trash2, X, CheckCircle, AlertTriangle, Clock, DollarSign, Users, TrendingUp, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { RefreshCw, Plus, Search, Edit, Trash2, X, CheckCircle, AlertTriangle, Clock, DollarSign, Users, Calendar, Loader2 } from 'lucide-react';
+import { api } from '../api/endpoints';
 
 const PLANS = ['Starter', 'Professional', 'Enterprise'];
 const BILLING = ['Monthly', 'Annually'];
 
 const avatarColors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-emerald-100 text-emerald-700', 'bg-rose-100 text-rose-700', 'bg-amber-100 text-amber-700'];
-const getAvatarColor = (name) => avatarColors[name.length % avatarColors.length];
+const getAvatarColor = (name) => avatarColors[(name || '').length % avatarColors.length];
 
 const planConfig = {
   Starter:      { color: 'bg-slate-100 text-slate-600 border-slate-200', price: { Monthly: 29, Annually: 24 } },
@@ -20,64 +21,95 @@ const statusConfig = {
   Canceled: { color: 'bg-slate-100 text-slate-500 border-slate-200',       icon: X },
 };
 
-const initialSubs = [
-  { id: 'SUB-001', customer: 'Acme Corp', email: 'billing@acme.com', plan: 'Enterprise', billing: 'Annually', status: 'Active', startDate: '2024-01-15', nextBilling: '2025-01-15', seats: 25 },
-  { id: 'SUB-002', customer: 'Bright Studio', email: 'admin@bright.io', plan: 'Professional', billing: 'Monthly', status: 'Active', startDate: '2024-08-01', nextBilling: '2024-11-01', seats: 8 },
-  { id: 'SUB-003', customer: 'NovaTech Ltd', email: 'pay@novatech.com', plan: 'Starter', billing: 'Monthly', status: 'Trialing', startDate: '2024-10-01', nextBilling: '2024-11-01', seats: 3 },
-  { id: 'SUB-004', customer: 'Drift Agency', email: 'ops@drift.co', plan: 'Professional', billing: 'Annually', status: 'PastDue', startDate: '2023-10-10', nextBilling: '2024-10-10', seats: 12 },
-  { id: 'SUB-005', customer: 'Leaf Ventures', email: 'cfo@leafvc.com', plan: 'Enterprise', billing: 'Monthly', status: 'Active', startDate: '2024-06-01', nextBilling: '2024-11-01', seats: 50 },
-  { id: 'SUB-006', customer: 'Wave Digital', email: 'billing@wave.io', plan: 'Starter', billing: 'Monthly', status: 'Canceled', startDate: '2024-03-01', nextBilling: '-', seats: 2 },
-];
-
 export default function Subscriptions() {
-  const [subs, setSubs] = useState(initialSubs);
+  const [subs, setSubs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [isModal, setIsModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({ customer: '', email: '', plan: 'Starter', billing: 'Monthly', status: 'Active', startDate: '', nextBilling: '', seats: 1 });
+  const [form, setForm] = useState({ customer: '', email: '', plan: 'Starter', billing: 'Monthly', status: 'Active', start_date: '', next_billing: '', seats: 1 });
+
+  const fetchSubscriptions = async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.subscriptions.list();
+      setSubs(data);
+    } catch (err) {
+      setError('Failed to fetch subscription data.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubscriptions();
+  }, []);
 
   const formatCurrency = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v);
 
-  const getMRR = (sub) => {
-    const price = planConfig[sub.plan]?.price[sub.billing] || 0;
-    return sub.billing === 'Annually' ? price : price;
-  };
-
   const activeSubs = subs.filter(s => s.status === 'Active' || s.status === 'Trialing');
   const totalMRR = activeSubs.reduce((s, sub) => {
-    const price = planConfig[sub.plan]?.price[sub.billing] || 0;
+    const plan = planConfig[sub.plan];
+    if (!plan) return s;
+    const price = plan.price[sub.billing] || 0;
     return s + (sub.billing === 'Annually' ? price * sub.seats / 12 : price * sub.seats);
   }, 0);
 
   const openCreate = () => {
-    setForm({ customer: '', email: '', plan: 'Starter', billing: 'Monthly', status: 'Active', startDate: new Date().toISOString().split('T')[0], nextBilling: '', seats: 1 });
+    setForm({ customer: '', email: '', plan: 'Starter', billing: 'Monthly', status: 'Active', start_date: new Date().toISOString().split('T')[0], next_billing: '', seats: 1 });
     setEditingId(null);
     setIsModal(true);
   };
 
   const openEdit = (sub) => {
-    setForm({ customer: sub.customer, email: sub.email, plan: sub.plan, billing: sub.billing, status: sub.status, startDate: sub.startDate, nextBilling: sub.nextBilling, seats: sub.seats });
+    setForm({ customer: sub.customer, email: sub.email, plan: sub.plan, billing: sub.billing, status: sub.status, start_date: sub.start_date, next_billing: sub.next_billing, seats: sub.seats });
     setEditingId(sub.id);
     setIsModal(true);
   };
 
-  const handleDelete = (id) => setSubs(subs.filter(s => s.id !== id));
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (editingId) {
-      setSubs(subs.map(s => s.id === editingId ? { ...s, ...form } : s));
-    } else {
-      setSubs([{ id: `SUB-${String(subs.length + 1).padStart(3, '0')}`, ...form }, ...subs]);
+  const handleDelete = async (id) => {
+    if (!window.confirm('Cancel and delete this subscription?')) return;
+    try {
+      await api.subscriptions.delete(id);
+      setSubs(subs.filter(s => s.id !== id));
+    } catch (err) {
+      alert('Failed to delete subscription.');
     }
-    setIsModal(false);
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        const updated = await api.subscriptions.update(editingId, form);
+        setSubs(subs.map(s => s.id === editingId ? updated : s));
+      } else {
+        const created = await api.subscriptions.create(form);
+        setSubs([created, ...subs]);
+      }
+      setIsModal(false);
+    } catch (err) {
+      alert('Failed to save subscription.');
+    }
   };
 
   const filtered = subs.filter(s =>
     (filterStatus === 'All' || s.status === filterStatus) &&
-    (s.customer.toLowerCase().includes(searchTerm.toLowerCase()) || s.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    ((s.customer || '').toLowerCase().includes(searchTerm.toLowerCase()) || (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+          <p className="text-slate-500 font-medium">Syncing Subscription Engine...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto bg-slate-50 p-8 relative">
@@ -148,14 +180,14 @@ export default function Subscriptions() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {filtered.map(sub => {
-                  const plan = planConfig[sub.plan];
-                  const st = statusConfig[sub.status];
+                  const plan = planConfig[sub.plan] || planConfig.Starter;
+                  const st = statusConfig[sub.status] || statusConfig.Active;
                   const mrr = (sub.billing === 'Annually' ? plan.price.Annually * sub.seats / 12 : plan.price.Monthly * sub.seats);
                   return (
                     <tr key={sub.id} className="hover:bg-blue-50/20 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${getAvatarColor(sub.customer)}`}>{sub.customer.charAt(0)}</div>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${getAvatarColor(sub.customer)}`}>{(sub.customer || '').charAt(0)}</div>
                           <div>
                             <p className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{sub.customer}</p>
                             <p className="text-xs text-slate-400">{sub.email}</p>
@@ -167,13 +199,13 @@ export default function Subscriptions() {
                       <td className="px-6 py-4"><span className="text-sm font-semibold text-slate-700">{sub.seats}</span></td>
                       <td className="px-6 py-4"><span className="text-sm font-bold text-slate-900">{formatCurrency(mrr)}/mo</span></td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center text-sm text-slate-600"><Calendar className="w-3.5 h-3.5 mr-1.5 text-slate-300" />{sub.nextBilling}</div>
+                        <div className="flex items-center text-sm text-slate-600"><Calendar className="w-3.5 h-3.5 mr-1.5 text-slate-300" />{sub.next_billing || '-'}</div>
                       </td>
                       <td className="px-6 py-4"><span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${st.color}`}><st.icon className="w-3 h-3 mr-1" />{sub.status}</span></td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEdit(sub)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md hover:bg-blue-50"><Edit className="w-4 h-4" /></button>
-                          <button onClick={() => handleDelete(sub.id)} className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>
+                          <button onClick={() => openEdit(sub)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md hover:bg-blue-50 transition-colors"><Edit className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete(sub.id)} className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </td>
                     </tr>
@@ -181,13 +213,19 @@ export default function Subscriptions() {
                 })}
               </tbody>
             </table>
+            {filtered.length === 0 && (
+              <div className="py-20 text-center">
+                <RefreshCw className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                <p className="text-slate-400 font-medium">No subscriptions matched your search.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Modal */}
       {isModal && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsModal(false)}></div>
           <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-spring-up">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -202,15 +240,21 @@ export default function Subscriptions() {
               <div className="grid grid-cols-3 gap-4">
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Plan</label><select value={form.plan} onChange={e => setForm({...form, plan: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg outline-none text-sm bg-white">{PLANS.map(p => <option key={p}>{p}</option>)}</select></div>
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Billing</label><select value={form.billing} onChange={e => setForm({...form, billing: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg outline-none text-sm bg-white">{BILLING.map(b => <option key={b}>{b}</option>)}</select></div>
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Seats</label><input type="number" min="1" value={form.seats} onChange={e => setForm({...form, seats: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Seats</label><input type="number" min="1" value={form.seats} onChange={e => setForm({...form, seats: parseInt(e.target.value) || 1})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Start Date</label><input type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg outline-none text-sm bg-white" /></div>
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Start Date</label><input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg outline-none text-sm bg-white" /></div>
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Status</label><select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg outline-none text-sm bg-white"><option>Active</option><option>Trialing</option><option>PastDue</option><option>Canceled</option></select></div>
               </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Next Billing (Optional)</label>
+                <input type="date" value={form.next_billing || ''} onChange={e => setForm({...form, next_billing: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg outline-none text-sm bg-white" />
+              </div>
               <div className="pt-4 flex justify-end space-x-3">
-                <button type="button" onClick={() => setIsModal(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 active:scale-[0.98]">{editingId ? 'Save Changes' : 'Create Subscription'}</button>
+                <button type="button" onClick={() => setIsModal(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm">
+                  {editingId ? 'Save Changes' : 'Create Subscription'}
+                </button>
               </div>
             </form>
           </div>
