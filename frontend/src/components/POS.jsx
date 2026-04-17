@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Plus, Minus, Trash2, CreditCard, DollarSign, Smartphone, X, CheckCircle, Search, Tag, Loader2, AlertCircle } from 'lucide-react';
 import { api } from '../api/endpoints';
 
-const CATEGORIES = ['All', 'Electronics', 'Electronics', 'Office', 'Furniture', 'Software'];
+const CATEGORIES = ['All', 'Electronics', 'Office', 'Furniture', 'Software'];
 
 export default function POS() {
   const [products, setProducts] = useState([]);
@@ -20,7 +20,7 @@ export default function POS() {
     setIsLoading(true);
     try {
       const [prods, custs] = await Promise.all([
-        api.inventory.list(),
+        api.products.list(),
         api.customers.list()
       ]);
       setProducts(prods);
@@ -50,7 +50,7 @@ export default function POS() {
 
   const removeFromCart = (id) => setCart(prev => prev.filter(i => i.id !== id));
 
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + i.unit_price * i.qty, 0);
   const discountAmount = subtotal * (discount / 100);
   const tax = (subtotal - discountAmount) * 0.09;
   const total = subtotal - discountAmount + tax;
@@ -73,7 +73,7 @@ export default function POS() {
         items: cart.map(item => ({
           product: item.id,
           quantity: item.qty,
-          price: item.price
+          price_at_purchase: item.unit_price
         }))
       };
 
@@ -156,7 +156,7 @@ export default function POS() {
                   <div className="w-10 h-10 bg-slate-50 text-blue-600 rounded-lg flex items-center justify-center mb-3 font-bold">{product.name.charAt(0)}</div>
                   <p className="text-sm font-semibold text-slate-800 group-hover:text-blue-600 transition-colors leading-snug">{product.name}</p>
                   <p className="text-xs text-slate-400 mt-0.5 capitalize">{product.category}</p>
-                  <p className="text-base font-extrabold text-slate-900 mt-2">${Number(product.price).toFixed(2)}</p>
+                  <p className="text-base font-extrabold text-slate-900 mt-2">${Number(product.unit_price).toFixed(2)}</p>
                   <div className="absolute inset-0 rounded-xl bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                 </button>
               );
@@ -193,7 +193,7 @@ export default function POS() {
               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">{item.name.charAt(0)}</div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-slate-800 truncate">{item.name}</p>
-                <p className="text-xs text-slate-500">${Number(item.price).toFixed(2)}</p>
+                <p className="text-xs text-slate-500">${Number(item.unit_price).toFixed(2)}</p>
               </div>
               <div className="flex items-center space-x-1">
                 <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 rounded-full bg-slate-200 hover:bg-blue-100 flex items-center justify-center transition-colors"><Minus className="w-3 h-3 text-slate-600" /></button>

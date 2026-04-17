@@ -23,7 +23,7 @@ export default function HR() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ first_name: '', last_name: '', role: '', department: 'Engineering', email: '', salary: '', hire_date: '' });
+  const [formData, setFormData] = useState({ name: '', role: '', department: 'Engineering', email: '', salary: '', joined_at: '' });
 
   const fetchEmployees = async () => {
     setIsLoading(true);
@@ -48,26 +48,25 @@ export default function HR() {
   const departments = [...new Set(employees.map(e => e.department))].length;
 
   const filteredEmployees = employees.filter(e =>
-    (e.first_name + ' ' + e.last_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.role.toLowerCase().includes(searchTerm.toLowerCase())
+    (e.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (e.department || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (e.role || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const openCreate = () => { 
-    setFormData({ first_name: '', last_name: '', role: '', department: 'Engineering', email: '', salary: '', hire_date: new Date().toISOString().split('T')[0] }); 
+    setFormData({ name: '', role: '', department: 'Engineering', email: '', salary: '', joined_at: new Date().toISOString().split('T')[0] }); 
     setEditingId(null); 
     setIsModalOpen(true); 
   };
   
   const openEdit = (emp) => { 
     setFormData({ 
-      first_name: emp.first_name, 
-      last_name: emp.last_name, 
-      role: emp.role, 
-      department: emp.department, 
-      email: emp.email, 
-      salary: emp.salary, 
-      hire_date: emp.hire_date 
+      name: emp.name || '', 
+      role: emp.role || '', 
+      department: emp.department || 'Engineering', 
+      email: emp.email || '', 
+      salary: emp.salary || '', 
+      joined_at: emp.joined_at || '' 
     }); 
     setEditingId(emp.id); 
     setIsModalOpen(true); 
@@ -195,11 +194,11 @@ export default function HR() {
                   <tr key={emp.id} className="hover:bg-blue-50/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(emp.first_name + emp.last_name)}`}>
-                          {emp.first_name.charAt(0)}
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColor(emp.name)}`}>
+                          {emp.name?.charAt(0) || 'E'}
                         </div>
                         <div>
-                          <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{emp.first_name} {emp.last_name}</p>
+                          <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{emp.name}</p>
                           <p className="text-xs text-slate-400">{emp.email}</p>
                         </div>
                       </div>
@@ -214,7 +213,7 @@ export default function HR() {
                     <td className="px-6 py-4">
                       <div className="flex items-center text-sm text-slate-600">
                         <Clock className="w-3.5 h-3.5 mr-1.5 text-slate-300" />
-                        {new Date(emp.hire_date).toLocaleDateString()}
+                        {emp.joined_at ? new Date(emp.joined_at).toLocaleDateString() : 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -245,9 +244,8 @@ export default function HR() {
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">First Name</label><input type="text" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Last Name</label><input type="text" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
+              <div className="grid grid-cols-1 gap-4">
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label><input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Department</label><select value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white">{DEPARTMENTS.map(d => <option key={d}>{d}</option>)}</select></div>
@@ -256,7 +254,7 @@ export default function HR() {
               <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Annual Salary ($)</label><input type="number" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Hire Date</label><input type="date" value={formData.hire_date} onChange={e => setFormData({...formData, hire_date: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Hire Date</label><input type="date" value={formData.joined_at} onChange={e => setFormData({...formData, joined_at: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
               </div>
               <div className="pt-4 flex justify-end space-x-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50">Cancel</button>

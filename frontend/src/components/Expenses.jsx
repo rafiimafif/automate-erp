@@ -36,7 +36,7 @@ export default function Expenses() {
   const [filterCategory, setFilterCategory] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({ description: '', employee_name: '', category: 'Travel', amount: '', status: 'pending', notes: '' });
+  const [form, setForm] = useState({ title: '', submitted_by: '', category: 'Travel', amount: '', status: 'pending', notes: '' });
 
   const fetchExpenses = async () => {
     setIsLoading(true);
@@ -57,25 +57,25 @@ export default function Expenses() {
   const formatCurrency = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
 
   // ─── KPI COMPUTATIONS ────────────────────────────────────────
-  const totalAmount = expenses.reduce((s, e) => s + Number(e.amount), 0);
-  const approvedAmount = expenses.filter(e => e.status === 'approved').reduce((s, e) => s + Number(e.amount), 0);
-  const pendingAmount = expenses.filter(e => e.status === 'pending').reduce((s, e) => s + Number(e.amount), 0);
+  const totalAmount = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+  const approvedAmount = expenses.filter(e => e.status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
+  const pendingAmount = expenses.filter(e => e.status === 'pending').reduce((s, e) => s + Number(e.amount || 0), 0);
   const pendingCount = expenses.filter(e => e.status === 'pending').length;
 
   // ─── CRUD ────────────────────────────────────────────────────
   const openCreate = () => {
-    setForm({ description: '', employee_name: '', category: 'Travel', amount: '', status: 'pending', notes: '' });
+    setForm({ title: '', submitted_by: '', category: 'Travel', amount: '', status: 'pending', notes: '' });
     setEditingId(null);
     setIsModalOpen(true);
   };
 
   const openEdit = (exp) => {
     setForm({ 
-      description: exp.description, 
-      employee_name: exp.employee_name, 
-      category: exp.category, 
-      amount: exp.amount, 
-      status: exp.status, 
+      title: exp.title || '', 
+      submitted_by: exp.submitted_by || '', 
+      category: exp.category || 'Travel', 
+      amount: exp.amount || '', 
+      status: exp.status || 'pending', 
       notes: exp.notes || '' 
     });
     setEditingId(exp.id);
@@ -129,9 +129,9 @@ export default function Expenses() {
 
   // ─── FILTERING ───────────────────────────────────────────────
   const filtered = expenses.filter(e => {
-    const matchSearch = e.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      e.employee_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchStatus = filterStatus === 'All' || e.status === filterStatus.toLowerCase();
+    const matchSearch = (e.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (e.submitted_by || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus = filterStatus === 'All' || (e.status || '').toLowerCase() === filterStatus.toLowerCase();
     const matchCat = filterCategory === 'All' || e.category === filterCategory;
     return matchSearch && matchStatus && matchCat;
   });
@@ -139,7 +139,7 @@ export default function Expenses() {
   // ─── CATEGORY BREAKDOWN ──────────────────────────────────────
   const categoryTotals = CATEGORIES.map(cat => ({
     ...cat,
-    total: expenses.filter(e => e.category === cat.label).reduce((s, e) => s + Number(e.amount), 0),
+    total: expenses.filter(e => e.category === cat.label).reduce((s, e) => s + Number(e.amount || 0), 0),
     count: expenses.filter(e => e.category === cat.label).length,
   })).filter(c => c.count > 0).sort((a, b) => b.total - a.total);
 
@@ -273,12 +273,12 @@ export default function Expenses() {
                       <tr key={exp.id} className="hover:bg-blue-50/20 transition-colors group">
                         <td className="px-5 py-4 max-w-[200px]">
                           <div className="flex items-center space-x-3">
-                            <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${getAvatarColor(exp.employee_name)}`}>
-                              {(exp.employee_name || 'U').charAt(0)}
+                            <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${getAvatarColor(exp.submitted_by)}`}>
+                              {(exp.submitted_by || 'U').charAt(0)}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{exp.description}</p>
-                              <p className="text-xs text-slate-400">{exp.employee_name} · {new Date(exp.created_at).toLocaleDateString()}</p>
+                              <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{exp.title}</p>
+                              <p className="text-xs text-slate-400">{exp.submitted_by} · {new Date(exp.submitted_at || exp.created_at).toLocaleDateString()}</p>
                             </div>
                           </div>
                         </td>
@@ -333,12 +333,12 @@ export default function Expenses() {
             <form onSubmit={handleSave} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Expense Description</label>
-                <input type="text" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="e.g. Flight to Singapore" required />
+                <input type="text" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="e.g. Flight to Singapore" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Employee Name</label>
-                  <input type="text" value={form.employee_name} onChange={e => setForm({...form, employee_name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required />
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Submitted By</label>
+                  <input type="text" value={form.submitted_by} onChange={e => setForm({...form, submitted_by: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Amount ($)</label>

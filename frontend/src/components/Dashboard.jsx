@@ -291,22 +291,31 @@ export default function Dashboard({ onNavigate }) {
             </CardHeader>
             <CardContent className="relative z-10 pt-2">
               <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-slate-800 before:via-slate-800 before:to-transparent">
-                {recentActivity.map((item, i) => (
-                  <div key={i} className="relative flex items-start space-x-4">
-                    <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center border-4 border-slate-900 relative z-10 shadow-sm transition-transform hover:scale-110 cursor-pointer ${item.type==='invoice' && item.amount?.startsWith('+') ? 'bg-emerald-500 text-white' : item.type==='order' ? 'bg-blue-500 text-white' : item.type==='invoice' ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-300'}`} onClick={() => onNavigate && onNavigate(item.route)}>
-                      <item.icon className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0 pt-1">
-                      <p onClick={() => onNavigate && onNavigate(item.route)} className="text-sm text-slate-200 font-medium leading-snug line-clamp-2 hover:text-blue-400 cursor-pointer transition-colors hover:underline underline-offset-2">{item.message}</p>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <span className="text-xs text-slate-500 flex items-center font-medium"><Clock className="w-3.5 h-3.5 mr-1" />{item.time}</span>
-                        {item.amount && (
-                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${item.amount.startsWith('+') ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>{item.amount}</span>
-                        )}
+                {recentActivity.map((item, i) => {
+                  const Icon = item.icon || Zap;
+                  const message = item.message || item.action;
+                  const time = item.time || new Date(item.timestamp).toLocaleTimeString();
+                  
+                  return (
+                    <div key={i} className="relative flex items-start space-x-4">
+                      <div 
+                        className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center border-4 border-slate-900 relative z-10 shadow-sm transition-transform hover:scale-110 cursor-pointer ${item.type==='invoice' && item.amount?.startsWith('+') ? 'bg-emerald-500 text-white' : item.type==='order' ? 'bg-blue-500 text-white' : item.type==='invoice' ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-300'}`} 
+                        onClick={() => item.route && onNavigate && onNavigate(item.route)}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0 pt-1">
+                        <p onClick={() => item.route && onNavigate && onNavigate(item.route)} className="text-sm text-slate-200 font-medium leading-snug line-clamp-2 hover:text-blue-400 cursor-pointer transition-colors hover:underline underline-offset-2">{message}</p>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-sm text-slate-500 flex items-center font-medium"><Clock className="w-3.5 h-3.5 mr-1" />{time}</span>
+                          {item.amount && (
+                            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${item.amount.startsWith('+') ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>{item.amount}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

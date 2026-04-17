@@ -13,12 +13,12 @@ export default function Suppliers() {
   // Supplier Modal
   const [isSupplierModal, setIsSupplierModal] = useState(false);
   const [editingSupId, setEditingSupId] = useState(null);
-  const [supForm, setSupForm] = useState({ name: '', contact_person: '', email: '', phone: '', category: 'Electronics', status: 'active' });
+  const [supForm, setSupForm] = useState({ name: '', contact_email: '', phone: '', country: '', category: 'Electronics', status: 'active' });
 
   // PO Modal
   const [isPOModal, setIsPOModal] = useState(false);
   const [editingPOId, setEditingPOId] = useState(null);
-  const [poForm, setPOForm] = useState({ supplier: '', description: '', amount: '', status: 'pending' });
+  const [poForm, setPOForm] = useState({ supplier: '', description: '', total_amount: '', status: 'pending' });
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -54,6 +54,7 @@ export default function Suppliers() {
   };
 
   const getStatusIcon = (status) => {
+    if (!status) return null;
     switch (status.toLowerCase()) {
       case 'delivered': return <CheckCircle className="w-3.5 h-3.5 mr-1" />;
       case 'pending': return <AlertTriangle className="w-3.5 h-3.5 mr-1" />;
@@ -63,8 +64,8 @@ export default function Suppliers() {
   };
 
   // Supplier CRUD
-  const openCreateSupplier = () => { setSupForm({ name: '', contact_person: '', email: '', phone: '', category: 'Electronics', status: 'active' }); setEditingSupId(null); setIsSupplierModal(true); };
-  const openEditSupplier = (s) => { setSupForm({ name: s.name, contact_person: s.contact_person, email: s.email, phone: s.phone, category: s.category, status: s.status }); setEditingSupId(s.id); setIsSupplierModal(true); };
+  const openCreateSupplier = () => { setSupForm({ name: '', contact_email: '', phone: '', country: '', category: 'Electronics', status: 'active' }); setEditingSupId(null); setIsSupplierModal(true); };
+  const openEditSupplier = (s) => { setSupForm({ name: s.name || '', contact_email: s.contact_email || '', phone: s.phone || '', country: s.country || '', category: s.category || 'Electronics', status: s.status || 'active' }); setEditingSupId(s.id); setIsSupplierModal(true); };
   const deleteSupplier = async (id) => {
     if (!window.confirm('Delete this supplier?')) return;
     try {
@@ -91,8 +92,8 @@ export default function Suppliers() {
   };
 
   // PO CRUD
-  const openCreatePO = () => { setPOForm({ supplier: suppliers[0]?.id || '', description: '', amount: '', status: 'pending' }); setEditingPOId(null); setIsPOModal(true); };
-  const openEditPO = (po) => { setPOForm({ supplier: po.supplier, description: po.description, amount: po.amount, status: po.status }); setEditingPOId(po.id); setIsPOModal(true); };
+  const openCreatePO = () => { setPOForm({ supplier: suppliers[0]?.id || '', description: '', total_amount: '', status: 'pending' }); setEditingPOId(null); setIsPOModal(true); };
+  const openEditPO = (po) => { setPOForm({ supplier: po.supplier, description: po.description, total_amount: po.total_amount, status: po.status }); setEditingPOId(po.id); setIsPOModal(true); };
   const deletePO = async (id) => {
     if (!window.confirm('Delete this purchase order?')) return;
     try {
@@ -105,7 +106,7 @@ export default function Suppliers() {
   const savePO = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...poForm, amount: parseFloat(poForm.amount) };
+      const payload = { ...poForm, total_amount: parseFloat(poForm.total_amount) };
       if (editingPOId) {
         const updated = await api.purchaseOrders.update(editingPOId, payload);
         setPurchaseOrders(purchaseOrders.map(p => p.id === editingPOId ? updated : p));
@@ -119,8 +120,14 @@ export default function Suppliers() {
     }
   };
 
-  const filteredSuppliers = suppliers.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()) || (s.contact_person || '').toLowerCase().includes(searchTerm.toLowerCase()));
-  const filteredPOs = purchaseOrders.filter(p => (p.supplier_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || p.id.toString().includes(searchTerm.toLowerCase()));
+  const filteredSuppliers = suppliers.filter(s => 
+    (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (s.contact_email || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const filteredPOs = purchaseOrders.filter(p => 
+    (p.supplier_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (p.id || '').toString().includes(searchTerm.toLowerCase())
+  );
 
   if (isLoading) {
     return (
@@ -214,11 +221,11 @@ export default function Suppliers() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-slate-700">{s.contact_person}</p>
-                        <p className="text-xs text-slate-400">{s.email}</p>
+                        <p className="text-sm font-medium text-slate-700">{s.contact_email}</p>
+                        <p className="text-xs text-slate-400">{s.phone}</p>
                       </td>
-                      <td className="px-6 py-4"><span className="text-sm text-slate-600">{s.category}</span></td>
-                      <td className="px-6 py-4"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border capitalize ${getStatusColor(s.status)}`}>{s.status}</span></td>
+                      <td className="px-6 py-4"><span className="text-sm text-slate-600">{s.category || 'N/A'}</span></td>
+                      <td className="px-6 py-4"><span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border capitalize ${getStatusColor(s.status || 'active')}`}>{s.status || 'Active'}</span></td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-1 opacity-60 group-hover:opacity-100 transition-opacity">
                           <button onClick={() => openEditSupplier(s)} className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md hover:bg-blue-50 transition-colors"><Edit className="w-4 h-4" /></button>
@@ -263,8 +270,8 @@ export default function Suppliers() {
                       </td>
                       <td className="px-6 py-4"><span className="text-sm font-medium text-slate-700">{po.supplier_name}</span></td>
                       <td className="px-6 py-4"><span className="text-sm text-slate-600">{po.description}</span></td>
-                      <td className="px-6 py-4"><span className="text-sm text-slate-600">{new Date(po.order_date).toLocaleDateString()}</span></td>
-                      <td className="px-6 py-4"><span className="text-sm font-bold text-slate-900">{formatCurrency(po.amount)}</span></td>
+                      <td className="px-6 py-4"><span className="text-sm text-slate-600">{po.order_date ? new Date(po.order_date).toLocaleDateString() : 'N/A'}</span></td>
+                      <td className="px-6 py-4"><span className="text-sm font-bold text-slate-900">{formatCurrency(po.total_amount)}</span></td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border capitalize ${getStatusColor(po.status)}`}>
                           {getStatusIcon(po.status)}{po.status}
@@ -300,11 +307,11 @@ export default function Suppliers() {
             <form onSubmit={saveSupplier} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Supplier Name</label><input type="text" value={supForm.name} onChange={e => setSupForm({...supForm, name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Contact Person</label><input type="text" value={supForm.contact_person} onChange={e => setSupForm({...supForm, contact_person: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Contact Email</label><input type="email" value={supForm.contact_email} onChange={e => setSupForm({...supForm, contact_email: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label><input type="email" value={supForm.email} onChange={e => setSupForm({...supForm, email: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Phone</label><input type="tel" value={supForm.phone} onChange={e => setSupForm({...supForm, phone: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
+                <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Country</label><input type="text" value={supForm.country} onChange={e => setSupForm({...supForm, country: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Category</label><input type="text" value={supForm.category} onChange={e => setSupForm({...supForm, category: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="e.g. Electronics" /></div>
@@ -330,9 +337,9 @@ export default function Suppliers() {
             </div>
             <form onSubmit={savePO} className="p-6 space-y-4">
               <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Supplier</label><select value={poForm.supplier} onChange={e => setPOForm({...poForm, supplier: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white">{suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
-              <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Order Description</label><input type="text" value={poForm.description} onChange={e => setPOForm({...poForm, description: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="e.g. Wireless Headphones x50" required /></div>
+              <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Order Description</label><input type="text" value={poForm.description || ''} onChange={e => setPOForm({...poForm, description: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" placeholder="e.g. Wireless Headphones x50" required /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2"><label className="block text-sm font-semibold text-slate-700 mb-1.5">Total Amount ($)</label><input type="number" step="0.01" value={poForm.amount} onChange={e => setPOForm({...poForm, amount: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
+                <div className="col-span-2"><label className="block text-sm font-semibold text-slate-700 mb-1.5">Total Amount ($)</label><input type="number" step="0.01" value={poForm.total_amount || ''} onChange={e => setPOForm({...poForm, total_amount: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required /></div>
               </div>
               <div><label className="block text-sm font-semibold text-slate-700 mb-1.5">Status</label><select value={poForm.status} onChange={e => setPOForm({...poForm, status: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white"><option value="pending">Pending</option><option value="processing">Processing</option><option value="delivered">Delivered</option></select></div>
               <div className="pt-4 flex justify-end space-x-3">
