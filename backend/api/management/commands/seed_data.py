@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from api.models import Product, Customer, Order, OrderItem, Deal, Expense, Employee, Supplier
 from decimal import Decimal
+import os
 import secrets
 import random
 secure_random = random.SystemRandom()
@@ -17,10 +18,10 @@ class Command(BaseCommand):
         # 1. Create Admin User
         admin_email = 'admin@automate.erp'
         if not User.objects.filter(email=admin_email).exists():
+            admin_password = os.getenv('ADMIN_PASSWORD', 'admin123')
             User.objects.create_superuser(
                 email=admin_email,
-                password='admin123',
-                first_name='Admin',
+                password=admin_password,
                 last_name='User',
                 role='admin'
             )
