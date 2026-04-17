@@ -290,7 +290,14 @@ export default function Projects() {
         {/* Task Modal */}
         {isTaskModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsTaskModal(false)}></div>
+            <div 
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+              onClick={() => setIsTaskModal(false)}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setIsTaskModal(false)}
+              role="button"
+              tabIndex={-1}
+              aria-label="Close modal"
+            ></div>
             <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-spring-up">
               <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <h2 className="text-lg font-bold text-slate-800">{editingTaskId ? 'Edit Task' : 'Add New Task'}</h2>
@@ -462,7 +469,14 @@ export default function Projects() {
       {/* Project Modal */}
       {isProjectModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsProjectModal(false)}></div>
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+            onClick={() => setIsProjectModal(false)}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setIsProjectModal(false)}
+            role="button"
+            tabIndex={-1}
+            aria-label="Close modal"
+          ></div>
           <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-spring-up">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-lg font-bold text-slate-800 flex items-center"><FolderKanban className="w-5 h-5 mr-2 text-blue-600" />{editingProjectId ? 'Edit Project' : 'New Project'}</h2>

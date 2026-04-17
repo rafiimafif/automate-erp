@@ -5,8 +5,8 @@ from decimal import Decimal
 import os
 import secrets
 import random
-secure_random = random.SystemRandom()
 
+secure_random = random.SystemRandom()
 User = get_user_model()
 
 class Command(BaseCommand):
@@ -14,8 +14,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         self.stdout.write('Seeding data...')
+        
+        self._create_admin()
+        self._seed_products()
+        self._seed_customers()
+        self._seed_orders()
+        self._seed_deals()
+        self._seed_expenses()
+        self._seed_employees()
+        self._seed_suppliers()
 
-        # 1. Create Admin User
+        self.stdout.write(self.style.SUCCESS('Database seeding completed successfully!'))
+
+    def _create_admin(self):
         admin_email = 'admin@automate.erp'
         if not User.objects.filter(email=admin_email).exists():
             # Using a generic name and split string to satisfy overactive security scanners
@@ -28,7 +39,7 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS(f'Created admin user: {admin_email}'))
 
-        # 2. Seed Products
+    def _seed_products(self):
         if Product.objects.count() == 0:
             products = [
                 {'name': 'Wireless Bluetooth Headphones', 'sku': 'AUDIO-WH-01', 'category': 'Electronics', 'unit_price': 129.99, 'stock_quantity': 45},
@@ -41,7 +52,7 @@ class Command(BaseCommand):
                 Product.objects.create(**p_data)
             self.stdout.write(self.style.SUCCESS(f'Created {len(products)} products'))
 
-        # 3. Seed Customers
+    def _seed_customers(self):
         if Customer.objects.count() == 0:
             customers = [
                 {'name': 'Acme Corp', 'email': 'billing@acme.com', 'company': 'Acme Corporation', 'total_value': 12500.00},
@@ -52,12 +63,14 @@ class Command(BaseCommand):
                 Customer.objects.create(**c_data)
             self.stdout.write(self.style.SUCCESS(f'Created {len(customers)} customers'))
 
-        # 4. Seed Orders (Invoices)
+    def _seed_orders(self):
         if Order.objects.count() == 0:
             customers = Customer.objects.all()
+            if not customers:
+                return
             for i in range(5):
                 cust = secrets.choice(customers)
-                order = Order.objects.create(
+                Order.objects.create(
                     customer=cust,
                     customer_name=cust.name,
                     customer_email=cust.email,
@@ -66,9 +79,11 @@ class Command(BaseCommand):
                 )
             self.stdout.write(self.style.SUCCESS('Created initial orders'))
 
-        # 5. Seed Deals (Sales Pipeline)
+    def _seed_deals(self):
         if Deal.objects.count() == 0:
             customers = Customer.objects.all()
+            if not customers:
+                return
             stages = ['lead', 'contacted', 'negotiating', 'won']
             deal_titles = ['Enterprise Software License', 'Cloud Infrastructure Setup', 'Hardware Refresh']
             for title in deal_titles:
@@ -81,7 +96,7 @@ class Command(BaseCommand):
                 )
             self.stdout.write(self.style.SUCCESS('Created initial deals'))
 
-        # 6. Seed Expenses
+    def _seed_expenses(self):
         if Expense.objects.count() == 0:
             expenses = [
                 {'title': 'Travel to Client Site', 'amount': 450.00, 'category': 'Travel', 'status': 'pending', 'submitted_by': 'John Doe'},
@@ -92,7 +107,7 @@ class Command(BaseCommand):
                 Expense.objects.create(**e_data)
             self.stdout.write(self.style.SUCCESS('Created initial expenses'))
 
-        # 7. Seed Employees (HR)
+    def _seed_employees(self):
         if Employee.objects.count() == 0:
             employees = [
                 {'name': 'John Doe', 'email': 'john@automate.erp', 'department': 'Engineering', 'role': 'Senior Developer', 'salary': 120000, 'status': 'active'},
@@ -103,7 +118,7 @@ class Command(BaseCommand):
                 Employee.objects.create(**emp_data)
             self.stdout.write(self.style.SUCCESS('Created initial employees'))
 
-        # 8. Seed Suppliers
+    def _seed_suppliers(self):
         if Supplier.objects.count() == 0:
             suppliers = [
                 {'name': 'Tech Wholesale Ltd', 'contact_email': 'sales@techwholesale.com', 'phone': '+1-555-0199', 'country': 'USA'},
@@ -112,5 +127,3 @@ class Command(BaseCommand):
             for s_data in suppliers:
                 Supplier.objects.create(**s_data)
             self.stdout.write(self.style.SUCCESS('Created initial suppliers'))
-
-        self.stdout.write(self.style.SUCCESS('Database seeding completed successfully!'))

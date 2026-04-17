@@ -261,7 +261,13 @@ export default function Dashboard({ onNavigate }) {
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 rounded-xl bg-slate-100/80 border border-slate-200/60 flex items-center justify-center text-xs font-bold text-slate-500 shadow-sm">{i + 1}</div>
                           <div>
-                            <p className="font-bold text-slate-900 text-sm group-hover/row:text-blue-600 transition-colors cursor-pointer" onClick={() => onNavigate && onNavigate('inventory')}>{p.name}</p>
+                            <p 
+                              className="font-bold text-slate-900 text-sm group-hover/row:text-blue-600 transition-colors cursor-pointer" 
+                              onClick={() => onNavigate && onNavigate('inventory')}
+                              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onNavigate && onNavigate('inventory')}
+                              role="button"
+                              tabIndex={0}
+                            >{p.name}</p>
                             <p className="text-xs text-slate-500 font-medium">{p.category}</p>
                           </div>
                         </div>
@@ -301,11 +307,23 @@ export default function Dashboard({ onNavigate }) {
                       <div 
                         className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center border-4 border-slate-900 relative z-10 shadow-sm transition-transform hover:scale-110 cursor-pointer ${item.type==='invoice' && item.amount?.startsWith('+') ? 'bg-emerald-500 text-white' : item.type==='order' ? 'bg-blue-500 text-white' : item.type==='invoice' ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-300'}`} 
                         onClick={() => item.route && onNavigate && onNavigate(item.route)}
+                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && item.route && onNavigate && onNavigate(item.route)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={message}
                       >
                         <Icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0 pt-1">
-                        <p onClick={() => item.route && onNavigate && onNavigate(item.route)} className="text-sm text-slate-200 font-medium leading-snug line-clamp-2 hover:text-blue-400 cursor-pointer transition-colors hover:underline underline-offset-2">{message}</p>
+                        <p 
+                          onClick={() => item.route && onNavigate && onNavigate(item.route)} 
+                          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && item.route && onNavigate && onNavigate(item.route)}
+                          role="button"
+                          tabIndex={0}
+                          className="text-sm text-slate-200 font-medium leading-snug line-clamp-2 hover:text-blue-400 cursor-pointer transition-colors hover:underline underline-offset-2"
+                        >
+                          {message}
+                        </p>
                         <div className="flex items-center gap-3 mt-1.5">
                           <span className="text-sm text-slate-500 flex items-center font-medium"><Clock className="w-3.5 h-3.5 mr-1" />{time}</span>
                           {item.amount && (

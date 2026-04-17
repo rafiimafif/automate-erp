@@ -298,7 +298,14 @@ export default function Suppliers() {
       {/* Supplier Modal */}
       {isSupplierModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsSupplierModal(false)}></div>
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+            onClick={() => setIsSupplierModal(false)}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setIsSupplierModal(false)}
+            role="button"
+            tabIndex={-1}
+            aria-label="Close modal"
+          ></div>
           <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-spring-up">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-lg font-bold text-slate-800 flex items-center"><Truck className="w-5 h-5 mr-2 text-blue-600" />{editingSupId ? 'Edit Supplier' : 'Add New Supplier'}</h2>
@@ -329,7 +336,14 @@ export default function Suppliers() {
       {/* PO Modal */}
       {isPOModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsPOModal(false)}></div>
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+            onClick={() => setIsPOModal(false)}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setIsPOModal(false)}
+            role="button"
+            tabIndex={-1}
+            aria-label="Close modal"
+          ></div>
           <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-spring-up">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-lg font-bold text-slate-800 flex items-center"><FileText className="w-5 h-5 mr-2 text-blue-600" />{editingPOId ? 'Edit Purchase Order' : 'Create Purchase Order'}</h2>

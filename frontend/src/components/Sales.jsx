@@ -280,8 +280,12 @@ export default function Sales() {
       {isModalOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
           <div 
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
             onClick={() => setIsModalOpen(false)}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setIsModalOpen(false)}
+            role="button"
+            tabIndex={-1}
+            aria-label="Close modal"
           ></div>
           
           <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-spring-up">

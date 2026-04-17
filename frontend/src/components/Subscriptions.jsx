@@ -226,7 +226,14 @@ export default function Subscriptions() {
       {/* Modal */}
       {isModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsModal(false)}></div>
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+            onClick={() => setIsModal(false)}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setIsModal(false)}
+            role="button"
+            tabIndex={-1}
+            aria-label="Close modal"
+          ></div>
           <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-spring-up">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-lg font-bold text-slate-800 flex items-center"><RefreshCw className="w-5 h-5 mr-2 text-violet-600" />{editingId ? 'Edit Subscription' : 'New Subscription'}</h2>
