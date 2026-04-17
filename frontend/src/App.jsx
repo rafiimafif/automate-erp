@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingCart, Users, Bell, Search, Plus, LogOut,
-  Kanban, Truck, LineChart, Briefcase, Blocks, Grid3x3, ArrowLeft, FolderKanban, Receipt, Monitor, RefreshCw
+  Kanban, Truck, LineChart, Briefcase, Blocks, Grid3x3, ArrowLeft, FolderKanban, Receipt, Monitor, RefreshCw,
+  FilePlus, UserPlus, FolderPlus
 } from 'lucide-react';
 
 import Home from './components/Home';
@@ -23,6 +24,21 @@ import Login from './components/Login';
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState(null); // null = show Home/App Launcher
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
+
+  const notifications = [
+    { id: 1, title: 'Invoice Paid', desc: 'Acme Corp paid #INV-2024-001', time: '2m ago', type: 'success' },
+    { id: 2, title: 'Low Stock', desc: 'Ergonomic Chair is below 10 units', time: '1h ago', type: 'warning' },
+    { id: 3, title: 'New Lead', desc: 'Marcus J. added to pipeline', time: '3h ago', type: 'info' },
+  ];
+
+  const quickActions = [
+    { label: 'New Invoice', icon: FilePlus, route: 'sales' },
+    { label: 'Add Customer', icon: UserPlus, route: 'customers' },
+    { label: 'Create Project', icon: FolderPlus, route: 'projects' },
+    { label: 'Submit Expense', icon: Receipt, route: 'expenses' },
+  ];
 
   if (!isAuthenticated) {
     return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
@@ -154,7 +170,7 @@ export default function App() {
             <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
               <Grid3x3 className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-sm">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-sm ">
               automateERP
             </span>
           </button>
@@ -171,7 +187,10 @@ export default function App() {
                 {group.items.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setIsAuthenticated(true); // Ensure persistent auth state
+                    }}
                     className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-full transition-all duration-200 ${
                       activeTab === item.id 
                         ? 'bg-blue-600 shadow-glow-blue text-white font-medium hover:bg-blue-700' 
@@ -236,19 +255,85 @@ export default function App() {
           </div>
           
           <div className="flex items-center space-x-4 flex-shrink-0">
-            <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center transition-colors shadow-md hover:shadow-lg shadow-blue-500/20 active:scale-[0.98]">
-              <Plus className="w-4 h-4 mr-2" />
-              Quick Action
-            </button>
+            {/* Notifications Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setIsNotificationsOpen(!isNotificationsOpen);
+                  setIsQuickActionOpen(false);
+                }}
+                className={`relative p-2 rounded-xl transition-all ${isNotificationsOpen ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+              >
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              </button>
+
+              {isNotificationsOpen && (
+                <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl border border-slate-200 shadow-glass-xl py-2 z-[60] animate-in fade-in zoom-in duration-200">
+                  <div className="px-4 py-2 border-b border-slate-100 flex justify-between items-center">
+                    <span className="text-sm font-bold text-slate-900">Notifications</span>
+                    <button className="text-[11px] font-bold text-blue-600 hover:underline">Mark all read</button>
+                  </div>
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.map(n => (
+                      <div 
+                        key={n.id} 
+                        onClick={() => {
+                          setActiveTab(n.route);
+                          setIsNotificationsOpen(false);
+                        }}
+                        className="px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0"
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="text-sm font-bold text-slate-800">{n.title}</span>
+                          <span className="text-[10px] text-slate-400">{n.time}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{n.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="px-4 py-2 text-center border-t border-slate-100">
+                    <button className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors">View all updates</button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
         {/* Dynamic Content Area */}
-        {renderContent()}
+        <div className="flex-1 overflow-auto relative">
+          {renderContent()}
+
+          {/* Global Floating Quick Actions FAB */}
+          {!isHome && (
+            <div className="fixed bottom-8 right-8 z-[100] group">
+              {/* Menu Container */}
+              <div className="absolute bottom-full right-0 pb-3 flex flex-col items-end gap-3 pointer-events-none group-hover:pointer-events-auto opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                {quickActions.map((action, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setActiveTab(action.route);
+                    }}
+                    className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 shadow-lg rounded-full hover:bg-slate-50 transition-all text-sm font-bold text-slate-700 hover:text-blue-600 hover:-translate-x-1"
+                  >
+                    <span>{action.label}</span>
+                    <action.icon className="w-4 h-4" />
+                  </button>
+                ))}
+              </div>
+
+              {/* Toggle Button */}
+              <button 
+                onClick={() => setIsQuickActionOpen(!isQuickActionOpen)}
+                className="flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-glow-blue hover:scale-105 active:scale-95 transition-all outline-none"
+              >
+                <Plus className="w-6 h-6 group-hover:rotate-45 transition-transform duration-300" />
+              </button>
+            </div>
+          )}
+        </div>
         
       </main>
     </div>

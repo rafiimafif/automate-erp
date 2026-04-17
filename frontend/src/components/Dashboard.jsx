@@ -308,29 +308,6 @@ export default function Dashboard({ onNavigate }) {
 
         </div>
 
-        {/* Floating Quick Actions FAB */}
-        <div className="fixed bottom-8 right-8 z-50 group">
-          {/* Bridge the hover gap by setting bottom to 100% and adding padding-bottom instead of a hard calc gap */}
-          <div className="absolute bottom-full right-0 pb-3 flex-col items-end gap-3 hidden group-hover:flex transition-all">
-            {[
-              { label: 'Create Invoice', icon: DollarSign, route: 'sales' },
-              { label: 'Add Product', icon: Package, route: 'inventory' },
-              { label: 'New Deal', icon: Target, route: 'pipeline' }
-            ].map(act => (
-              <button 
-                key={act.label} 
-                onClick={() => onNavigate && onNavigate(act.route)}
-                className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 shadow-md rounded-full hover:bg-slate-50 transition-all text-sm font-bold text-slate-700 hover:text-blue-600 hover:-translate-x-1"
-              >
-                {act.label} <act.icon className="w-4 h-4" />
-              </button>
-            ))}
-          </div>
-          <button className="flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-glow-blue hover:scale-105 active:scale-95 transition-all outline-none">
-            <Plus className="w-6 h-6 group-hover:rotate-45 transition-transform" />
-          </button>
-        </div>
-
       </div>
     </div>
   );
