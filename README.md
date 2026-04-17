@@ -13,6 +13,8 @@
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
 [![Django](https://img.shields.io/badge/Django-5-092E20?logo=django&logoColor=white)](https://djangoproject.com)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Vitest](https://img.shields.io/badge/Vitest-3-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev)
+[![Selenium](https://img.shields.io/badge/Selenium-4-43B02A?logo=selenium&logoColor=white)](https://selenium.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 </div>
@@ -69,11 +71,34 @@ Designed with a **Stripe/Linear/Vercel-inspired premium UI**, automateERP replac
 - **Trivy** — Vulnerability scanner for containers
 - **GHCR** — GitHub Container Registry for image hosting
 
-### Infrastructure
+### UI & Testing
 - **Docker + Docker Compose** — Fully containerized development and deployment
+- **Vitest & RTL** — Sub-second unit and integration testing
+- **Selenium** — End-to-end browser automation
 - **Vite Dev Server** — Hot Module Replacement with volume mounts
 
 ---
+
+## 🧪 Quality Assurance & Testing
+
+automateERP implements a high-integrity testing strategy to ensure both component-level reliability and end-to-end business flow correctness.
+
+### 1. Frontend Unit & Integration (Vitest + RTL)
+- **Framework:** [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+- **Target:** 80%+ Code Coverage across all business modules.
+- **Features:** Mocked API responses, sub-second execution, and LCOV coverage reporting.
+- **Run locally:** `cd frontend && npm run test` or `npm run coverage`
+
+### 2. End-to-End Automation (Selenium)
+- **Framework:** Selenium WebDriver + Pytest
+- **Target:** Full user journey validation (Login → App Launch → Module Navigation → CRUD).
+- **Features:** Headless execution in CI, premium animation handling, and detailed HTML reporting.
+- **Run locally:** `cd qa && pytest`
+
+### 3. Continuous Quality (SonarCloud)
+- Unified dashboard for both Python (Backend) and JavaScript/JSX (Frontend) quality metrics.
+- Automated Quality Gate checks in GitHub Actions.
+- Real-time vulnerability and code smell detection.
 
 ## 📁 Project Structure
 
