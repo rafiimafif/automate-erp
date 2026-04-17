@@ -43,6 +43,19 @@ const topProducts = [
   { name: 'Office Chair', category: 'Furniture', sold: 24, revenue: 5976, trend: 21.7 },
 ];
 
+const categoryReport = [
+  { label: 'Electronics', value: 45, color: 'bg-blue-500' },
+  { label: 'Software', value: 25, color: 'bg-indigo-500' },
+  { label: 'Furniture', value: 20, color: 'bg-purple-500' },
+  { label: 'Services', value: 10, color: 'bg-emerald-500' },
+];
+
+const budgetReport = [
+  { label: 'Marketing', allocated: 25000, spent: 22000, color: 'bg-purple-500' },
+  { label: 'R&D', allocated: 40000, spent: 18000, color: 'bg-blue-500' },
+  { label: 'Operations', allocated: 35000, spent: 34500, color: 'bg-amber-500' },
+];
+
 export default function Dashboard({ onNavigate }) {
   const [period, setPeriod] = useState('month');
   const data = mockData[period];
@@ -146,6 +159,72 @@ export default function Dashboard({ onNavigate }) {
               </Card>
             ))}
           </div>
+        </div>
+
+        {/* MIDDLE SECTION: Analytics Reports */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-app-card-in animation-delay-300">
+          
+          {/* Sales by Category Breakdown */}
+          <Card className="flex flex-col h-full hover:shadow-md transition-all">
+            <CardHeader className="pb-4 border-b border-slate-100/60 flex flex-row justify-between items-center">
+              <div>
+                <CardTitle>Sales Composition</CardTitle>
+                <CardDescription>Revenue breakdown by category</CardDescription>
+              </div>
+              <Button onClick={() => onNavigate && onNavigate('sales')} variant="ghost" size="sm" className="hidden sm:flex text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-full px-4">Details</Button>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-5">
+                {categoryReport.map((cat, i) => (
+                  <div key={i}>
+                    <div className="flex justify-between items-end mb-2">
+                      <span className="text-sm font-bold text-slate-700">{cat.label}</span>
+                      <span className="text-sm font-extrabold text-slate-900">{cat.value}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
+                      <div className={`h-full ${cat.color} rounded-full`} style={{ width: `${cat.value}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Budget vs Spend Report */}
+          <Card className="flex flex-col h-full hover:shadow-md transition-all">
+            <CardHeader className="pb-4 border-b border-slate-100/60 flex flex-row justify-between items-center">
+              <div>
+                <CardTitle>Department Budgets</CardTitle>
+                <CardDescription>Allocated vs actual spend</CardDescription>
+              </div>
+              <Button onClick={() => onNavigate && onNavigate('accounting')} variant="ghost" size="sm" className="hidden sm:flex text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-full px-4">Accounting</Button>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-6">
+                {budgetReport.map((dept, i) => {
+                  const percent = Math.min(100, (dept.spent / dept.allocated) * 100);
+                  const isWarning = percent > 90;
+                  return (
+                    <div key={i}>
+                      <div className="flex justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-2 h-2 rounded-full ${dept.color}`} />
+                          <span className="text-sm font-bold text-slate-700">{dept.label}</span>
+                        </div>
+                        <span className="text-sm font-medium text-slate-500">
+                          <span className={isWarning ? 'text-red-500 font-bold' : 'text-slate-900 font-bold'}>{formatCurrency(dept.spent)}</span> / {formatCurrency(dept.allocated)}
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
+                        <div className={`h-full rounded-full transition-all duration-500 ${isWarning ? 'bg-red-500 shadow-glow-blue' : dept.color}`} style={{ width: `${percent}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
         </div>
 
         {/* BOTTOM SECTION: Top Products & Activity Timeline */}
