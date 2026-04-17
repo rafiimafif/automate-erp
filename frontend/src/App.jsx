@@ -69,7 +69,7 @@ export default function App() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <Dashboard onNavigate={setActiveTab} />;
       case 'inventory': return <Inventory />;
       case 'sales': return <Sales />;
       case 'customers': return <Customers />;
@@ -82,7 +82,7 @@ export default function App() {
       case 'expenses': return <Expenses />;
       case 'pos': return <POS />;
       case 'subscriptions': return <Subscriptions />;
-      default: return <Dashboard />;
+      default: return <Dashboard onNavigate={setActiveTab} />;
     }
   };
 
@@ -164,7 +164,7 @@ export default function App() {
         <nav className="flex-1 overflow-y-auto p-4 space-y-6 w-full custom-scrollbar">
           {navGroups.map((group, idx) => (
             <div key={idx}>
-              <h3 className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+              <h3 className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
                 {group.title}
               </h3>
               <div className="space-y-1">
@@ -172,13 +172,13 @@ export default function App() {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors ${
+                    className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-full transition-all duration-200 ${
                       activeTab === item.id 
-                        ? 'bg-blue-50 text-blue-700 font-medium' 
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        ? 'bg-blue-600 shadow-glow-blue text-white font-medium hover:bg-blue-700' 
+                        : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-900 font-medium'
                     }`}
                   >
-                    <item.icon className={`w-5 h-5 flex-shrink-0 ${activeTab === item.id ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <item.icon className={`w-5 h-5 flex-shrink-0 transition-colors ${activeTab === item.id ? 'text-white' : 'text-slate-400'}`} />
                     <span className="text-sm whitespace-nowrap">{item.label}</span>
                   </button>
                 ))}
@@ -211,26 +211,26 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Topbar */}
-        <header className="h-16 flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10">
+        <header className="h-16 flex-shrink-0 bg-white/70 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-between px-8 sticky top-0 z-50">
           <div className="flex items-center space-x-4">
             {/* Back to Home */}
             <button
               onClick={handleGoHome}
-              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
               title="Back to Home"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <span className="text-sm font-bold text-slate-700">{currentAppLabel}</span>
-            <span className="text-slate-200">|</span>
-            <div className="relative w-72">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <span className="text-[15px] font-bold text-slate-900 tracking-tight">{currentAppLabel}</span>
+            <span className="text-slate-300">|</span>
+            <div className="relative w-80 group">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-500" />
               <input 
                 type="text" 
-                placeholder="Search anything..." 
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none text-sm transition-all shadow-sm"
+                placeholder="Search across reports, clients, deals..." 
+                className="w-full pl-10 pr-4 py-2 bg-slate-100/50 hover:bg-slate-100 border border-transparent focus:bg-white rounded-full focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 outline-none text-sm transition-all placeholder:text-slate-400"
               />
             </div>
           </div>
