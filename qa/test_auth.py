@@ -3,8 +3,8 @@ What is this for:
 Tests the authentication flows: successful login, logout, and failed login attempts.
 """
 import pytest
-from .pages.login_page import LoginPage
-from .pages.home_page import HomePage
+from pages.login_page import LoginPage
+from pages.home_page import HomePage
 
 def test_login_success(driver, base_url, login_helper):
     """Verify that a user can login with valid credentials."""

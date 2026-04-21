@@ -4,8 +4,8 @@ Tests the application's navigation systems, such as moving between apps via the 
 and navigating within an app using the sidebar.
 """
 import pytest
-from .pages.home_page import HomePage
-from .pages.inventory_page import InventoryPage
+from pages.home_page import HomePage
+from pages.inventory_page import InventoryPage
 
 def test_sidebar_navigation(driver, base_url, login_helper):
     """Verify that clicking sidebar links updates the current view."""

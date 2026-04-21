@@ -11,8 +11,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 import os
 from dotenv import load_dotenv
 
-from .pages.login_page import LoginPage
-from .pages.home_page import HomePage
+from pages.login_page import LoginPage
+from pages.home_page import HomePage
 
 load_dotenv()
 

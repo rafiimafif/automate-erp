@@ -4,9 +4,9 @@ Smoke tests to verify that critical data is loading correctly once a user logs i
 specific applications (Metrics in Dashboard, Data rows in Inventory).
 """
 import pytest
-from .pages.home_page import HomePage
-from .pages.dashboard_page import DashboardPage
-from .pages.inventory_page import InventoryPage
+from pages.home_page import HomePage
+from pages.dashboard_page import DashboardPage
+from pages.inventory_page import InventoryPage
 
 def test_dashboard_metrics_load(driver, base_url, login_helper):
     """Verify that dashboard metrics (Total Sales, etc.) are loaded and not zero/loading."""
