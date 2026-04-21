@@ -1,42 +1,37 @@
+"""
+What is this for:
+Tests the authentication flows: successful login, logout, and failed login attempts.
+"""
 import pytest
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from .pages.login_page import LoginPage
+from .pages.home_page import HomePage
 
 def test_login_success(driver, base_url, login_helper):
     """Verify that a user can login with valid credentials."""
     login_helper() # Uses defaults admin@automate.erp / admin123
     
     # Verify we are on the home/dashboard
+    home_page = HomePage(driver)
     assert "automateERP" in driver.page_source
-    assert driver.find_element(By.CSS_SELECTOR, "header").is_displayed()
+    assert home_page.is_loaded()
 
 def test_logout(driver, base_url, login_helper):
     """Verify that a user can logout safely."""
     login_helper()
     
-    # Click logout button in header (last button usually or by title)
-    logout_btn = driver.find_element(By.CSS_SELECTOR, "button[title='Sign Out']")
-    logout_btn.click()
+    home_page = HomePage(driver)
+    home_page.logout()
     
     # Verify we are back on login page
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.ID, "username"))
-    )
+    login_page = LoginPage(driver, base_url)
+    assert login_page.is_login_page_loaded()
     assert "Sign in" in driver.page_source
 
 def test_login_failure(driver, base_url):
     """Verify that invalid credentials show an error message."""
-    driver.get(f"{base_url}/login")
-    driver.find_element(By.ID, "username").send_keys("wrong@user.com")
-    driver.find_element(By.ID, "password").send_keys("wrongpass")
-    driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
+    login_page = LoginPage(driver, base_url)
+    login_page.navigate()
+    login_page.login("wrong@user.com", "wrongpass")
     
-    # Wait for error message visibility (handles animations)
-    error_msg = WebDriverWait(driver, 10).until(
-        EC.visibility_of_element_located((By.CSS_SELECTOR, ".text-red-600"))
-    )
-    
-    # Check for failure indicator (flexible for user-friendly or API messages)
-    text = error_msg.text
+    text = login_page.get_error_message()
     assert "failed" in text.lower() or "error" in text.lower()

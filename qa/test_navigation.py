@@ -1,50 +1,35 @@
+"""
+What is this for:
+Tests the application's navigation systems, such as moving between apps via the Home grid 
+and navigating within an app using the sidebar.
+"""
 import pytest
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from .pages.home_page import HomePage
+from .pages.inventory_page import InventoryPage
 
 def test_sidebar_navigation(driver, base_url, login_helper):
     """Verify that clicking sidebar links updates the current view."""
     login_helper()
     
-    # First, enter an app from the Home grid
-    # Wait for the "Welcome" hero text
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[contains(text(), 'Welcome')]")))
+    home_page = HomePage(driver)
+    assert home_page.is_welcome_displayed()
     
-    # Click Inventory card in the grid
-    inventory_card = driver.find_element(By.XPATH, "//button[h3[text()='Inventory']]")
-    inventory_card.click()
+    home_page.click_inventory()
     
-    # Now that we are inside, we can use the Sidebar
-    # Click on Sales
-    sales_btn = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, "//button[span[text()='Sales & Invoices']]"))
-    )
-    sales_btn.click()
+    inventory_page = InventoryPage(driver)
+    inventory_page.click_sales_and_invoices()
     
-    # Verify header span updates
-    WebDriverWait(driver, 10).until(
-        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "header span"), "Sales & Invoices")
-    )
+    assert "Sales & Invoices" in inventory_page.get_header_title()
 
 def test_app_launcher_to_inventory(driver, base_url, login_helper):
     """Verify that opening an app from the Home grid works."""
     login_helper()
     
-    # Wait for Home grid
-    inventory_card = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, "//button[h3[text()='Inventory']]"))
-    )
-    inventory_card.click()
+    home_page = HomePage(driver)
+    home_page.click_inventory()
     
-    # Verify inside Inventory
-    WebDriverWait(driver, 10).until(
-        EC.text_to_be_present_in_element((By.CSS_SELECTOR, "header span"), "Inventory")
-    )
+    inventory_page = InventoryPage(driver)
+    assert inventory_page.is_loaded()
     
-    # Go back to home
-    back_btn = driver.find_element(By.CSS_SELECTOR, "button[title='Back to Home']")
-    back_btn.click()
-    
-    # Verify back on Home
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[contains(text(), 'Welcome')]")))
+    inventory_page.go_back_home()
+    assert home_page.is_welcome_displayed()

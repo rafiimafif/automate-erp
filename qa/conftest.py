@@ -1,3 +1,8 @@
+"""
+What is this for:
+Pytest configuration file. It contains shared fixtures for the Selenium test suite, 
+including driver initialization and a reusable login helper.
+"""
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -5,6 +10,9 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import os
 from dotenv import load_dotenv
+
+from .pages.login_page import LoginPage
+from .pages.home_page import HomePage
 
 load_dotenv()
 
@@ -22,7 +30,8 @@ def driver():
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
-    driver.implicitly_wait(10)
+    
+    # Removed implicitly_wait to avoid mixed wait anti-patterns
     
     yield driver
     
@@ -35,17 +44,11 @@ def base_url():
 @pytest.fixture
 def login_helper(driver, base_url):
     def _login(username="admin@automate.erp", password="admin123"):
-        # Ensure we are on the domain before clearing storage
-        driver.get(base_url)
-        driver.execute_script("window.localStorage.clear();")
+        login_page = LoginPage(driver, base_url)
+        login_page.navigate()
+        login_page.login(username, password)
         
-        # Now go to the login page correctly
-        driver.get(f"{base_url}/login")
-        driver.find_element("id", "username").clear()
-        driver.find_element("id", "username").send_keys(username)
-        driver.find_element("id", "password").clear()
-        driver.find_element("id", "password").send_keys(password)
-        driver.find_element("css selector", 'button[type="submit"]').click()
         # Wait for dashboard/home to load
-        driver.find_element("css selector", "header") 
+        home_page = HomePage(driver)
+        home_page.is_loaded()
     return _login
