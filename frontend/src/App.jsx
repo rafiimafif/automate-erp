@@ -20,12 +20,11 @@ import Expenses from './components/Expenses';
 import POS from './components/POS';
 import Subscriptions from './components/Subscriptions';
 import Login from './components/Login';
-
+import { api } from './api/endpoints';
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('access_token'));
   const [activeTab, setActiveTab] = useState(null); // null = show Home/App Launcher
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
 
   // Sync auth state if changed in other tabs or by refresh
   useEffect(() => {
@@ -79,7 +78,7 @@ export default function App() {
           const data = await api.notifications.list();
           setNotifications(data);
         } catch (err) {
-          console.error('Failed to fetch notifications');
+          console.error('Failed to fetch notifications', err);
         }
       };
       fetchNotifications();

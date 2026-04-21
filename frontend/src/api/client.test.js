@@ -11,7 +11,7 @@ describe('apiClient', () => {
 
   it('adds Authorization header when token exists', async () => {
     localStorage.setItem('access_token', 'test-token');
-    global.fetch.mockResolvedValue({
+    globalThis.fetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ data: 'success' }),
       status: 200
@@ -19,7 +19,7 @@ describe('apiClient', () => {
 
     await apiClient('/test');
 
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/test'),
       expect.objectContaining({
         headers: expect.objectContaining({
@@ -31,7 +31,7 @@ describe('apiClient', () => {
 
   it('clears storage and reloads on 401', async () => {
     localStorage.setItem('access_token', 'expired-token');
-    global.fetch.mockResolvedValue({
+    globalThis.fetch.mockResolvedValue({
       ok: false,
       status: 401
     });
@@ -43,7 +43,7 @@ describe('apiClient', () => {
   });
 
   it('throws error on non-ok response', async () => {
-    global.fetch.mockResolvedValue({
+    globalThis.fetch.mockResolvedValue({
       ok: false,
       status: 500,
       json: () => Promise.resolve({ detail: 'Server Error' })
@@ -53,7 +53,7 @@ describe('apiClient', () => {
   });
 
   it('returns true on 204 No Content', async () => {
-    global.fetch.mockResolvedValue({
+    globalThis.fetch.mockResolvedValue({
       ok: true,
       status: 204
     });
