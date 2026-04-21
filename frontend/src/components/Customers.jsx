@@ -17,7 +17,7 @@ export default function Customers() {
     try {
       const data = await api.customers.list();
       setCustomers(data);
-    } catch (err) {
+    } catch {
       setError('Failed to load customers directory.');
     } finally {
       setIsLoading(false);
@@ -44,7 +44,7 @@ export default function Customers() {
     try {
       await api.customers.delete(id);
       setCustomers(customers.filter(c => c.id !== id));
-    } catch (err) {
+    } catch {
       alert('Failed to delete customer.');
     }
   };

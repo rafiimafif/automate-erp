@@ -21,7 +21,7 @@ export default function Accounting() {
         setMetrics(mReq);
         setOrders(oReq);
         setExpenses(eReq);
-      } catch (err) {
+      } catch {
         setError('Failed to load financial records.');
       } finally {
         setIsLoading(false);

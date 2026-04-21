@@ -30,7 +30,7 @@ export default function HR() {
     try {
       const data = await api.employees.list();
       setEmployees(data);
-    } catch (err) {
+    } catch {
       setError('Failed to fetch employee records.');
     } finally {
       setIsLoading(false);
@@ -77,7 +77,7 @@ export default function HR() {
     try {
       await api.employees.delete(id);
       setEmployees(employees.filter(e => e.id !== id));
-    } catch (err) {
+    } catch {
       alert('Failed to delete employee.');
     }
   };
@@ -94,7 +94,7 @@ export default function HR() {
         setEmployees([created, ...employees]);
       }
       setIsModalOpen(false);
-    } catch (err) {
+    } catch {
       alert('Failed to save employee.');
     }
   };

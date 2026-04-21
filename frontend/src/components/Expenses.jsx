@@ -43,7 +43,7 @@ export default function Expenses() {
     try {
       const data = await api.expenses.list();
       setExpenses(data);
-    } catch (err) {
+    } catch {
       setError('Failed to load expense reports.');
     } finally {
       setIsLoading(false);
@@ -87,7 +87,7 @@ export default function Expenses() {
     try {
       await api.expenses.delete(id);
       setExpenses(expenses.filter(e => e.id !== id));
-    } catch (err) {
+    } catch {
       alert('Failed to delete expense.');
     }
   };
@@ -113,7 +113,7 @@ export default function Expenses() {
     try {
       const updated = await api.expenses.approve(id);
       setExpenses(expenses.map(e => e.id === id ? updated : e));
-    } catch (err) {
+    } catch {
       alert('Failed to approve.');
     }
   };
@@ -122,7 +122,7 @@ export default function Expenses() {
     try {
       const updated = await api.expenses.reject(id);
       setExpenses(expenses.map(e => e.id === id ? updated : e));
-    } catch (err) {
+    } catch {
       alert('Failed to reject.');
     }
   };
