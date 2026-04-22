@@ -1,10 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import App from './App';
+import App from '../App';
 import React from 'react';
 
 // Mock components to avoid deep rendering issues in basic smoke tests
-vi.mock('./components/Home', () => ({
+vi.mock('../components/Home', () => ({
   default: ({ onOpenApp }) => (
     <div data-testid="home-page">
       <button onClick={() => onOpenApp('dashboard')}>Open Dashboard</button>
@@ -12,11 +12,11 @@ vi.mock('./components/Home', () => ({
   )
 }));
 
-vi.mock('./components/Dashboard', () => ({
+vi.mock('../components/Dashboard', () => ({
   default: () => <div data-testid="dashboard-page">Dashboard Content</div>
 }));
 
-vi.mock('./components/Login', () => ({
+vi.mock('../components/Login', () => ({
   default: ({ onLoginSuccess }) => (
     <div data-testid="login-page">
       <button onClick={onLoginSuccess}>Login</button>

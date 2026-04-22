@@ -1,11 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import Pipeline from './Pipeline';
-import { api } from '../api/endpoints';
+import Pipeline from '../../components/Pipeline';
+import { api } from '../../api/endpoints';
 import React from 'react';
 
 // Mock the API endpoints
-vi.mock('../api/endpoints', () => ({
+vi.mock('../../api/endpoints', () => ({
   api: {
     deals: {
       list: vi.fn(),

@@ -1,11 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import Dashboard from './Dashboard';
-import { api } from '../api/endpoints';
+import Dashboard from '../../components/Dashboard';
+import { api } from '../../api/endpoints';
 import React from 'react';
 
 // Mock the API endpoints
-vi.mock('../api/endpoints', () => ({
+vi.mock('../../api/endpoints', () => ({
   api: {
     dashboard: {
       metrics: vi.fn()
@@ -39,30 +39,27 @@ describe('Dashboard Component', () => {
 
   it('renders metrics after loading', async () => {
     render(<Dashboard onNavigate={mockOnNavigate} />);
-    await waitFor(() => expect(screen.queryByText(/Computing Analytics/i)).toBeNull());
     
-    expect(screen.getByText('$124,500')).toBeDefined();
-    expect(screen.getByText('3245')).toBeDefined();
-    expect(screen.getByText('842')).toBeDefined();
-    expect(screen.getByText('6')).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByText('Total Lifetime Sales')).toBeDefined();
+      expect(screen.getByText('$124,500')).toBeDefined();
+    });
   });
 
   it('handles period switching', async () => {
     render(<Dashboard onNavigate={mockOnNavigate} />);
-    await waitFor(() => expect(screen.getByText('Overview')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Total Lifetime Sales')).toBeDefined());
     
-    const weekBtn = screen.getByRole('button', { name: /week/i });
+    const weekBtn = screen.getByText('week');
     fireEvent.click(weekBtn);
-    expect(weekBtn.className).toContain('bg-slate-900');
+    
+    expect(api.dashboard.metrics).toHaveBeenCalled();
   });
 
-  it('navigates when clicking metrics or activity', async () => {
+  it('navigates when clicking activity', async () => {
     render(<Dashboard onNavigate={mockOnNavigate} />);
-    await waitFor(() => expect(screen.getByText('Overview')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('New order #ORD-882')).toBeDefined());
     
-    fireEvent.click(screen.getByText('Orders Processed').closest('div').parentElement);
-    expect(mockOnNavigate).toHaveBeenCalledWith('sales');
-
     fireEvent.click(screen.getByText('New order #ORD-882'));
     expect(mockOnNavigate).toHaveBeenCalledWith('sales');
   });

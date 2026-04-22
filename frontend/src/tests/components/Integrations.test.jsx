@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import Integrations from './Integrations';
+import Integrations from '../../components/Integrations';
 import React from 'react';
 
 describe('Integrations Component', () => {
