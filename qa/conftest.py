@@ -11,7 +11,7 @@ from pages.home_page import HomePage
 
 load_dotenv()
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def base_url():
     return os.environ.get("BASE_URL", "http://localhost:5173")
 
