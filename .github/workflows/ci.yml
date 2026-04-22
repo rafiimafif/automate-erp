@@ -152,6 +152,8 @@ jobs:
           docker compose up -d
           # Wait for services to be ready
           sleep 30 
+          # Seed database with users and test data
+          docker compose exec -T backend python manage.py seed_data
 
       - name: Run Playwright Tests
         run: |
