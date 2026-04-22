@@ -1,10 +1,9 @@
+
 import pytest
-from api.models import (
-    Product, Customer, Order, Deal, Expense, 
-    Employee, Supplier, PurchaseOrder, Project, Task, Subscription
-)
 from mixer.backend.django import mixer
-from decimal import Decimal
+
+from api.models import Customer, Deal, Employee, Expense, Order, Product, Project, PurchaseOrder, Subscription, Supplier, Task
+
 
 @pytest.mark.django_db
 class TestProductModel:
@@ -12,11 +11,11 @@ class TestProductModel:
         # Case 1: In Stock
         p1 = mixer.blend(Product, stock_quantity=50)
         assert p1.status == 'In Stock'
-        
+
         # Case 2: Low Stock
         p2 = mixer.blend(Product, stock_quantity=10)
         assert p2.status == 'Low Stock'
-        
+
         # Case 3: Out of Stock
         p3 = mixer.blend(Product, stock_quantity=0)
         assert p3.status == 'Out of Stock'

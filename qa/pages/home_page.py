@@ -2,21 +2,20 @@
 What is this for:
 Home Page Object. Encapsulates all interactions on the main dashboard grid after login.
 """
-from selenium.webdriver.common.by import By
 from .base_page import BasePage
 
 class HomePage(BasePage):
-    HEADER = (By.CSS_SELECTOR, "header")
-    LOGOUT_BUTTON = (By.CSS_SELECTOR, "button[title='Sign Out']")
-    WELCOME_TEXT = (By.XPATH, "//h1[contains(text(), 'Welcome')]")
-    INVENTORY_CARD = (By.XPATH, "//button[h3[text()='Inventory']]")
-    DASHBOARD_CARD = (By.XPATH, "//button[h3[text()='Dashboard']]")
+    HEADER = "header"
+    LOGOUT_BUTTON = "button[title='Sign Out']"
+    WELCOME_TEXT = "xpath=//h1[contains(text(), 'Welcome')]"
+    INVENTORY_CARD = "xpath=//button[h3[text()='Inventory']]"
+    DASHBOARD_CARD = "xpath=//button[h3[text()='Dashboard']]"
     
     def is_loaded(self):
-        return self.wait_for_visibility(self.HEADER).is_displayed()
+        return self.wait_for_visibility(self.HEADER).is_visible()
         
     def is_welcome_displayed(self):
-        return self.wait_for_visibility(self.WELCOME_TEXT).is_displayed()
+        return self.wait_for_visibility(self.WELCOME_TEXT).is_visible()
 
     def logout(self):
         self.click(self.LOGOUT_BUTTON)

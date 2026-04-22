@@ -2,15 +2,14 @@
 What is this for:
 Inventory Page Object. Encapsulates interactions inside the Inventory application tab.
 """
-from selenium.webdriver.common.by import By
 from .base_page import BasePage
 
 class InventoryPage(BasePage):
-    SALES_AND_INVOICES_BTN = (By.XPATH, "//button[span[text()='Sales & Invoices']]")
-    HEADER_TITLE = (By.CSS_SELECTOR, "header span")
-    BACK_TO_HOME_BTN = (By.CSS_SELECTOR, "button[title='Back to Home']")
-    DATA_TABLE = (By.TAG_NAME, "table")
-    DATA_TABLE_ROWS = (By.CSS_SELECTOR, "tbody tr")
+    SALES_AND_INVOICES_BTN = "xpath=//button[span[text()='Sales & Invoices']]"
+    HEADER_TITLE = "header span"
+    BACK_TO_HOME_BTN = "button[title='Back to Home']"
+    DATA_TABLE = "table"
+    DATA_TABLE_ROWS = "tbody tr"
     
     def is_loaded(self):
         return "Inventory" in self.get_text(self.HEADER_TITLE)
@@ -26,5 +25,4 @@ class InventoryPage(BasePage):
         
     def get_table_row_count(self):
         self.wait_for_element(self.DATA_TABLE)
-        rows = self.driver.find_elements(*self.DATA_TABLE_ROWS)
-        return len(rows)
+        return self.page.locator(self.DATA_TABLE_ROWS).count()

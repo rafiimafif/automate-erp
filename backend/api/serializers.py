@@ -1,9 +1,23 @@
-from rest_framework import serializers
 from django.contrib.auth import authenticate
+from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import (
-    User, Product, Order, OrderItem, ActivityLog, Notification,
-    Customer, Deal, Expense, Employee, Supplier, PurchaseOrder, Project, Task, Subscription
+    ActivityLog,
+    Customer,
+    Deal,
+    Employee,
+    Expense,
+    Notification,
+    Order,
+    OrderItem,
+    Product,
+    Project,
+    PurchaseOrder,
+    Subscription,
+    Supplier,
+    Task,
+    User,
 )
 
 

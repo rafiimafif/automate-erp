@@ -1,10 +1,12 @@
-from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
-from api.models import Product, Customer, Order, OrderItem, Deal, Expense, Employee, Supplier
-from decimal import Decimal
 import os
-import secrets
 import random
+import secrets
+from decimal import Decimal
+
+from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
+
+from api.models import Customer, Deal, Employee, Expense, Order, Product, Supplier
 
 secure_random = random.SystemRandom()
 User = get_user_model()
@@ -14,7 +16,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         self.stdout.write('Seeding data...')
-        
+
         self._create_admin()
         self._seed_products()
         self._seed_customers()

@@ -1,0 +1,22 @@
+[tool.ruff]
+line-length = 127
+exclude = [
+    ".git",
+    "__pycache__",
+    "env",
+    "venv",
+    ".env",
+    ".venv",
+    "migrations",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+]
+ignore = [
+    "E501" # Line too long
+]

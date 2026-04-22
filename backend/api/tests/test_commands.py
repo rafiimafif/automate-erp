@@ -1,6 +1,8 @@
 import pytest
 from django.core.management import call_command
-from api.models import Product, Customer, Order, Deal, Expense, Employee, Supplier
+
+from api.models import Customer, Deal, Employee, Expense, Order, Product, Supplier
+
 
 @pytest.mark.django_db
 def test_seed_data_command():
@@ -9,7 +11,7 @@ def test_seed_data_command():
     """
     # Execute the command
     call_command('seed_data')
-    
+
     # Assert that data was created
     assert Product.objects.count() > 0
     assert Customer.objects.count() > 0

@@ -1,11 +1,10 @@
 import pytest
 from django.urls import reverse
-from rest_framework import status
 from mixer.backend.django import mixer
-from api.models import (
-    Product, Customer, Deal, Expense, Employee, 
-    Supplier, PurchaseOrder, Project, Task, Subscription
-)
+from rest_framework import status
+
+from api.models import Customer, Deal, Employee, Expense, Product, Project, Subscription, Supplier, Task
+
 
 @pytest.mark.django_db
 class TestProductViews:

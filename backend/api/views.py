@@ -1,18 +1,40 @@
-from rest_framework import viewsets, generics, permissions, status
+from django.db.models import Sum
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Sum, Count
+
 from .models import (
-    User, Product, Order, ActivityLog, Notification,
-    Customer, Deal, Expense, Employee, Supplier, PurchaseOrder, Project, Task,
-    Subscription
+    ActivityLog,
+    Customer,
+    Deal,
+    Employee,
+    Expense,
+    Notification,
+    Order,
+    Product,
+    Project,
+    PurchaseOrder,
+    Subscription,
+    Supplier,
+    Task,
+    User,
 )
 from .serializers import (
-    UserSerializer, LoginSerializer, ProductSerializer, OrderSerializer,
-    ActivityLogSerializer, NotificationSerializer, CustomerSerializer,
-    DealSerializer, ExpenseSerializer, EmployeeSerializer,
-    SupplierSerializer, PurchaseOrderSerializer, ProjectSerializer, TaskSerializer,
-    SubscriptionSerializer
+    ActivityLogSerializer,
+    CustomerSerializer,
+    DealSerializer,
+    EmployeeSerializer,
+    ExpenseSerializer,
+    LoginSerializer,
+    NotificationSerializer,
+    OrderSerializer,
+    ProductSerializer,
+    ProjectSerializer,
+    PurchaseOrderSerializer,
+    SubscriptionSerializer,
+    SupplierSerializer,
+    TaskSerializer,
+    UserSerializer,
 )
 
 
