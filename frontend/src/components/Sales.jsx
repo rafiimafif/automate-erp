@@ -301,8 +301,9 @@ export default function Sales() {
             
             <form onSubmit={handleSave} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Client Name</label>
+                <label htmlFor="sales-client" className="block text-sm font-semibold text-slate-700 mb-1.5">Client Name</label>
                 <input 
+                  id="sales-client"
                   type="text" 
                   value={formData.customer_name}
                   onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
@@ -313,8 +314,9 @@ export default function Sales() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Client Email</label>
+                <label htmlFor="sales-email" className="block text-sm font-semibold text-slate-700 mb-1.5">Client Email</label>
                 <input 
+                  id="sales-email"
                   type="email" 
                   value={formData.customer_email}
                   onChange={(e) => setFormData({...formData, customer_email: e.target.value})}
@@ -325,8 +327,9 @@ export default function Sales() {
               
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Amount ($)</label>
+                  <label htmlFor="sales-amount" className="block text-sm font-semibold text-slate-700 mb-1.5">Amount ($)</label>
                   <input 
+                    id="sales-amount"
                     type="number" 
                     step="0.01"
                     min="0"
@@ -338,8 +341,9 @@ export default function Sales() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Payment Status</label>
+                  <label htmlFor="sales-status" className="block text-sm font-semibold text-slate-700 mb-1.5">Payment Status</label>
                   <select 
+                    id="sales-status"
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
                     className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none sm:text-sm bg-white"

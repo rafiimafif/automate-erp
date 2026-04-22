@@ -225,29 +225,29 @@ export default function Customers() {
             <form onSubmit={handleSave} className="p-6 space-y-5">
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label>
-                  <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" required />
+                  <label htmlFor="cust-name" className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label>
+                  <input id="cust-name" type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Company</label>
-                  <input type="text" value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" />
+                  <label htmlFor="cust-company" className="block text-sm font-semibold text-slate-700 mb-1.5">Company</label>
+                  <input id="cust-company" type="text" value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" />
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
-                  <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" required />
+                  <label htmlFor="cust-email" className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
+                  <input id="cust-email" type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Phone Number</label>
-                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" />
+                  <label htmlFor="cust-phone" className="block text-sm font-semibold text-slate-700 mb-1.5">Phone Number</label>
+                  <input id="cust-phone" type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" />
                 </div>
               </div>
 
               <div>
-                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Total Value ($)</label>
-                 <input type="number" step="0.01" value={formData.total_value} onChange={(e) => setFormData({...formData, total_value: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" placeholder="0.00" />
+                 <label htmlFor="cust-value" className="block text-sm font-semibold text-slate-700 mb-1.5">Total Value ($)</label>
+                 <input id="cust-value" type="number" step="0.01" value={formData.total_value} onChange={(e) => setFormData({...formData, total_value: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" placeholder="0.00" />
               </div>
 
               <div className="pt-4 flex justify-end space-x-3">

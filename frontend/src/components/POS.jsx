@@ -196,11 +196,11 @@ export default function POS() {
                 <p className="text-xs text-slate-500">${Number(item.unit_price).toFixed(2)}</p>
               </div>
               <div className="flex items-center space-x-1">
-                <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 rounded-full bg-slate-200 hover:bg-blue-100 flex items-center justify-center transition-colors"><Minus className="w-3 h-3 text-slate-600" /></button>
+                <button onClick={() => updateQty(item.id, -1)} aria-label="Decrease quantity" className="w-6 h-6 rounded-full bg-slate-200 hover:bg-blue-100 flex items-center justify-center transition-colors"><Minus className="w-3 h-3 text-slate-600" /></button>
                 <span className="w-5 text-center text-sm font-bold">{item.qty}</span>
-                <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 rounded-full bg-slate-200 hover:bg-blue-100 flex items-center justify-center transition-colors"><Plus className="w-3 h-3 text-slate-600" /></button>
+                <button onClick={() => updateQty(item.id, 1)} aria-label="Increase quantity" className="w-6 h-6 rounded-full bg-slate-200 hover:bg-blue-100 flex items-center justify-center transition-colors"><Plus className="w-3 h-3 text-slate-600" /></button>
               </div>
-              <button onClick={() => removeFromCart(item.id)} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+              <button onClick={() => removeFromCart(item.id)} aria-label="Remove item" className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
             </div>
           ))}
         </div>

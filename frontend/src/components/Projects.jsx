@@ -308,8 +308,8 @@ export default function Projects() {
               </div>
               <form onSubmit={saveTask} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Task Title</label>
-                  <input type="text" value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required placeholder="e.g. Design homepage mockup" />
+                  <label htmlFor="task-title" className="block text-sm font-semibold text-slate-700 mb-1.5">Task Title</label>
+                  <input id="task-title" type="text" value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required placeholder="e.g. Design homepage mockup" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Description</label>
@@ -490,8 +490,8 @@ export default function Projects() {
             </div>
             <form onSubmit={saveProject} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Project Name</label>
-                <input type="text" value={projectForm.name} onChange={e => setProjectForm({...projectForm, name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required placeholder="e.g. Website Redesign" />
+                <label htmlFor="project-name" className="block text-sm font-semibold text-slate-700 mb-1.5">Project Name</label>
+                <input id="project-name" type="text" value={projectForm.name} onChange={e => setProjectForm({...projectForm, name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm" required placeholder="e.g. Website Redesign" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Description</label>

@@ -162,7 +162,7 @@ export default function Pipeline() {
                     >
                       {/* Floating actions on hover */}
                       <div className="absolute top-3 right-3 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded px-1">
-                        <button onClick={(e) => handleDelete(card.id, e)} className="p-1 text-slate-400 hover:text-red-600 rounded bg-white hover:bg-red-50">
+                        <button aria-label="Delete Deal" onClick={(e) => handleDelete(card.id, e)} className="p-1 text-slate-400 hover:text-red-600 rounded bg-white hover:bg-red-50">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -220,18 +220,18 @@ export default function Pipeline() {
             
             <form onSubmit={handleSave} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Client Name</label>
-                <input type="text" value={formData.customer_name} onChange={(e) => setFormData({...formData, customer_name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" placeholder="Acme Corp" required />
+                <label htmlFor="deal-client" className="block text-sm font-semibold text-slate-700 mb-1.5">Client Name</label>
+                <input id="deal-client" type="text" value={formData.customer_name} onChange={(e) => setFormData({...formData, customer_name: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" placeholder="Acme Corp" required />
               </div>
               
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Deal Value ($)</label>
-                  <input type="number" min="0" value={formData.deal_value} onChange={(e) => setFormData({...formData, deal_value: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" required />
+                  <label htmlFor="deal-value" className="block text-sm font-semibold text-slate-700 mb-1.5">Deal Value ($)</label>
+                  <input id="deal-value" type="number" min="0" value={formData.deal_value} onChange={(e) => setFormData({...formData, deal_value: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Stage</label>
-                  <select value={formData.stage} onChange={(e) => setFormData({...formData, stage: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm bg-white font-medium text-blue-700">
+                  <label htmlFor="deal-stage" className="block text-sm font-semibold text-slate-700 mb-1.5">Stage</label>
+                  <select id="deal-stage" value={formData.stage} onChange={(e) => setFormData({...formData, stage: e.target.value})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none sm:text-sm bg-white font-medium text-blue-700">
                     {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
                 </div>

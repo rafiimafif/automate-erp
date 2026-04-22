@@ -198,6 +198,7 @@ export default function Integrations() {
                       </button>
                       <button
                         onClick={() => toggleStatus(integration.id)}
+                        aria-label={`${isConnected ? 'Disconnect' : 'Connect'} ${integration.name}`}
                         className={`flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-[0.97] ${
                           isConnected
                             ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-100'

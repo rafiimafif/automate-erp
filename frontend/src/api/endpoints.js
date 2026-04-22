@@ -171,5 +171,24 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ is_read: true })
     }),
+  },
+
+  subscriptions: {
+    list: () => apiClient('/subscriptions/'),
+    create: (data) => apiClient('/subscriptions/', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+    update: (id, data) => apiClient(`/subscriptions/${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }),
+    delete: (id) => apiClient(`/subscriptions/${id}/`, {
+      method: 'DELETE'
+    }),
+  },
+
+  stats: {
+    summary: () => apiClient('/stats/summary/'),
   }
 };
