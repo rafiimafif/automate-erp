@@ -11,10 +11,12 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev)
-[![Django](https://img.shields.io/badge/Django-5-092E20?logo=django&logoColor=white)](https://djangoproject.com)
+[![Django](https://img.shields.io/badge/Django-5.1-092E20?logo=django&logoColor=white)](https://djangoproject.com)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Vitest](https://img.shields.io/badge/Vitest-3-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev)
-[![Selenium](https://img.shields.io/badge/Selenium-4-43B02A?logo=selenium&logoColor=white)](https://selenium.dev)
+[![Playwright](https://img.shields.io/badge/Playwright-1.49-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
+[![uv](https://img.shields.io/badge/uv-Package_Manager-FFD700?logo=python&logoColor=black)](https://docs.astral.sh/uv/)
+[![Ruff](https://img.shields.io/badge/Ruff-Linter-000000?logo=python&logoColor=white)](https://docs.astral.sh/ruff/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 </div>
@@ -61,9 +63,11 @@ Designed with a **Stripe/Linear/Vercel-inspired premium UI**, automateERP replac
 
 ### Backend
 - **Python 3.10** — Stable and performant runtime
-- **Django 5** — Battle-tested web framework
+- **Django 5.1** — Battle-tested web framework with modern async support
 - **Django REST Framework** — API-first architecture
-- **SQLite** — Default database (zero-config, portable to PostgreSQL)
+- **PostgreSQL** — Production-grade ACID compliant database (default in Docker)
+- **uv** — High-performance Python package manager replacing pip
+- **Ruff** — Lightning-fast Rust-based linter and formatter
 
 ### CI/CD & Security
 - **GitHub Actions** — Automated CI/CD pipelines
@@ -74,7 +78,7 @@ Designed with a **Stripe/Linear/Vercel-inspired premium UI**, automateERP replac
 ### UI & Testing
 - **Docker + Docker Compose** — Fully containerized development and deployment
 - **Vitest & RTL** — Sub-second unit and integration testing
-- **Selenium** — End-to-end browser automation
+- **Playwright** — Modern, reliable end-to-end browser automation
 - **Vite Dev Server** — Hot Module Replacement with volume mounts
 
 ---
@@ -89,11 +93,11 @@ automateERP implements a high-integrity testing strategy to ensure both componen
 - **Features:** Mocked API responses, sub-second execution, and LCOV coverage reporting.
 - **Run locally:** `cd frontend && npm run test` or `npm run coverage`
 
-### 2. End-to-End Automation (Selenium)
-- **Framework:** Selenium WebDriver + Pytest
+### 2. End-to-End Automation (Playwright)
+- **Framework:** [Playwright](https://playwright.dev/) + Pytest
 - **Target:** Full user journey validation (Login → App Launch → Module Navigation → CRUD).
-- **Features:** Headless execution in CI, premium animation handling, and detailed HTML reporting.
-- **Run locally:** `cd qa && pytest`
+- **Features:** Auto-waiting, snapshot testing, network interception, and sub-second execution.
+- **Run locally:** `cd qa && playwright install && pytest`
 
 ### 3. Continuous Quality (SonarCloud)
 - Unified dashboard for both Python (Backend) and JavaScript/JSX (Frontend) quality metrics.
@@ -222,16 +226,17 @@ automateERP includes a ready-to-configure integrations hub covering:
 
 ## 🔮 Roadmap
 
-- [ ] **Real Authentication** — JWT token auth via Django Simple JWT + Clerk SSO
+- [x] **Real Authentication** — JWT token auth via Django Simple JWT
 - [x] **Live API Integration** — Wire all frontend CRUD operations to the Django REST backend
-- [ ] **PostgreSQL Support** — Production-grade database with Docker volume persistence
+- [x] **PostgreSQL Support** — Production-grade database with Docker volume persistence
 - [ ] **Multi-Tenancy** — Isolated workspaces per organization for SaaS deployment
 - [ ] **Stripe Billing** — Subscription tiers limiting features per plan
 - [ ] **Role-Based Access Control** — Granular permissions per employee department
 - [ ] **Email Notifications** — Invoice delivery and low-stock alerts via Resend
 - [x] **Modular UI** — Odoo-style home launcher with standalone app feel
 - [x] **Premium SaaS UI** — Stripe/Linear-grade redesign with glassmorphism, AI insights, reusable component library, and deep micro-interactions
-- [x] **CI/CD Pipeline** — GitHub Actions workflow with automated Docker builds, SonarCloud, and Trivy security scanning
+- [x] **CI/CD Pipeline** — GitHub Actions workflow with automated Docker builds (using `uv`), SonarCloud, and Trivy security scanning
+- [x] **E2E Testing Migration** — Selenium to Playwright migration for ultra-reliable testing
 - [ ] **AWS Deployment** — Terraform IaC for scalable cloud infrastructure
 
 ---
