@@ -203,7 +203,11 @@ jobs:
           args: >
             -Dsonar.projectKey=rafiimafif_automate-erp
             -Dsonar.organization=rafiimafif
+            -Dsonar.sources=backend,frontend/src
+            -Dsonar.tests=frontend/src/tests,backend/api/tests
+            -Dsonar.exclusions=**/node_modules/**,**/migrations/**,**/__pycache__/**,**/dist/**,**/venv/**,.venv/**,**/*.test.jsx,**/*.test.js,**/*.test.ts,**/tests/**,**/conftest.py,**/setupTests.js
             -Dsonar.python.coverage.reportPaths=backend/coverage.xml
             -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
-            -Dsonar.coverage.exclusions=backend/api/migrations/**,backend/core/asgi.py,backend/core/wsgi.py,backend/manage.py
+            -Dsonar.coverage.exclusions=backend/api/migrations/**,backend/core/asgi.py,backend/core/wsgi.py,backend/manage.py,**/*.test.jsx,**/*.test.js,**/*.test.ts,**/tests/**,**/conftest.py,**/setupTests.js,**/vitest.config.*,**/vite.config.*,**/tailwind.config.*,**/postcss.config.*,**/*.config.js,**/*.config.cjs
             -Dsonar.cpd.exclusions=backend/api/migrations/**
+
