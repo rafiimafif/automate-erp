@@ -40,18 +40,25 @@ jobs:
         run: python manage.py check
         env:
           DJANGO_SETTINGS_MODULE: core.settings
+          DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
+          DJANGO_DEBUG: 'True'
 
       - name: Run migrations check
         working-directory: ./backend
         run: python manage.py migrate --run-syncdb
         env:
           DJANGO_SETTINGS_MODULE: core.settings
+          DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
+          DJANGO_DEBUG: 'True'
 
       - name: Run tests with coverage
         working-directory: ./backend
         run: pytest --cov=api --cov-report=xml:coverage.xml --cov-report=term --tb=short
         env:
           DJANGO_SETTINGS_MODULE: core.settings
+          DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
+          DJANGO_DEBUG: 'True'
+
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

@@ -101,7 +101,7 @@ export default function Sales() {
       const payload = {
         customer_name: formData.customer_name,
         customer_email: formData.customer_email || 'client@example.com',
-        total_amount: parseFloat(formData.amount),
+        total_amount: Number.parseFloat(formData.amount),
         status: formData.status.toLowerCase()
       };
 

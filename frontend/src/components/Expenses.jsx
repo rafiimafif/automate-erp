@@ -95,7 +95,7 @@ export default function Expenses() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...form, amount: parseFloat(form.amount) };
+      const payload = { ...form, amount: Number.parseFloat(form.amount) };
       if (editingId) {
         const updated = await api.expenses.update(editingId, payload);
         setExpenses(expenses.map(exp => exp.id === editingId ? updated : exp));

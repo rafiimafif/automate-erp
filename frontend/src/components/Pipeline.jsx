@@ -74,7 +74,7 @@ export default function Pipeline() {
     try {
       const payload = {
         customer_name: formData.customer_name,
-        deal_value: parseFloat(formData.deal_value),
+        deal_value: Number.parseFloat(formData.deal_value),
         stage: formData.stage
       };
 
@@ -205,7 +205,7 @@ export default function Pipeline() {
       {/* Form Modal */}
       {isModalOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setIsModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setIsModalOpen(false)} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setIsModalOpen(false)} role="button" tabIndex={-1} aria-label="Close modal"></div>
           
           <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-spring-up">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">

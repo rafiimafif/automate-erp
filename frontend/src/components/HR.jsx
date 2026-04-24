@@ -85,7 +85,7 @@ export default function HR() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...formData, salary: parseFloat(formData.salary) };
+      const payload = { ...formData, salary: Number.parseFloat(formData.salary) };
       if (editingId) {
         const updated = await api.employees.update(editingId, payload);
         setEmployees(employees.map(emp => emp.id === editingId ? updated : emp));
@@ -234,7 +234,7 @@ export default function HR() {
       {/* Employee Modal */}
       {isModalOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setIsModalOpen(false)} role="button" tabIndex={-1} aria-label="Close modal"></div>
           <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-spring-up">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h2 className="text-lg font-bold text-slate-800 flex items-center">

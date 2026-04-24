@@ -41,7 +41,7 @@ export default function Accounting() {
       date: new Date(o.created_at).toLocaleDateString(),
       desc: `Order #ORD-${o.id.toString().padStart(4, '0')} (${o.customer_name})`,
       category: 'Sales Revenue',
-      amount: parseFloat(o.total_amount),
+      amount: Number.parseFloat(o.total_amount),
       type: 'revenue'
     }));
 
@@ -50,14 +50,14 @@ export default function Accounting() {
       date: new Date(e.submitted_at || Date.now()).toLocaleDateString(),
       desc: e.title,
       category: e.category,
-      amount: -parseFloat(e.amount),
+      amount: -Number.parseFloat(e.amount),
       type: 'expense'
     }));
 
     return [...revenueEntries, ...expenseEntries].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
   }, [orders, expenses]);
 
-  const totalExpenses = expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+  const totalExpenses = expenses.reduce((acc, curr) => acc + Number.parseFloat(curr.amount), 0);
   const netProfit = displayMetrics.total_sales - totalExpenses;
 
   if (isLoading) {

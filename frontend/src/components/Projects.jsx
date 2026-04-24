@@ -509,7 +509,7 @@ export default function Projects() {
                 </div>
                 <div>
                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Progress (%)</label>
-                   <input type="number" min="0" max="100" value={projectForm.progress} onChange={e => setProjectForm({...projectForm, progress: parseInt(e.target.value) || 0})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white" />
+                   <input type="number" min="0" max="100" value={projectForm.progress} onChange={e => setProjectForm({...projectForm, progress: Number.parseInt(e.target.value) || 0})} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 outline-none text-sm bg-white" />
                 </div>
               </div>
               <div>

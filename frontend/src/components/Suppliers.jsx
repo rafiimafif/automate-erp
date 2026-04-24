@@ -106,7 +106,7 @@ export default function Suppliers() {
   const savePO = async (e) => {
     e.preventDefault();
     try {
-      const payload = { ...poForm, total_amount: parseFloat(poForm.total_amount) };
+      const payload = { ...poForm, total_amount: Number.parseFloat(poForm.total_amount) };
       if (editingPOId) {
         const updated = await api.purchaseOrders.update(editingPOId, payload);
         setPurchaseOrders(purchaseOrders.map(p => p.id === editingPOId ? updated : p));
